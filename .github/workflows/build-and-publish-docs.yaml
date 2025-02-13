@@ -1,0 +1,77 @@
+name: Build and publish documentation
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+env:
+  PYTHON_VERSION: 3.x
+
+permissions:
+  contents: write
+  id-token: write
+  pages: write
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+        
+      - name: Fetch gh-pages branch
+        run: git fetch origin gh-pages --depth=1
+
+      - name: Set up Python runtime
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+
+      - name: Set up build cache
+        uses: actions/cache/restore@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          key: mkdocs-material-${{ hashfiles('.cache/**') }}
+          path: .cache
+          restore-keys: |
+            mkdocs-material-
+
+      - name: Install Python dependencies
+        run: |
+          pip install --no-cache-dir mkdocs-material \
+                                     mkdocs-literate-nav \
+                                     mkdocs-redirects \
+                                     mkdocs-material[recommended] \
+                                     mkdocs-material[imaging] \
+                                     mike
+
+      - name: Configure Git user
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Extract short tag
+        id: extract_short_tag
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          SHORT_TAG="$(echo "$TAG" | sed 's/\([0-9]*\.[0-9]*\).*/\1\.x/')"
+          echo "SHORT_TAG=$SHORT_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy with mike 🚀
+        # note that "mike set-default latest" was run manually in initial docs setup
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          SHORT_TAG=${{ steps.extract_short_tag.outputs.SHORT_TAG }}
+          mike deploy --update-aliases --push --branch=gh-pages "$SHORT_TAG" latest
+          mike --version
+          
+      - name: Save build cache
+        uses: actions/cache/save@d4323d4df104b026a6aa633fdb11d772146be0bf # v4.2.2
+        with:
+          key: mkdocs-material-${{ hashfiles('.cache/**') }}
+          path: .cache
