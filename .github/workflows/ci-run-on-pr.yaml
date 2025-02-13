@@ -1,0 +1,135 @@
+name: CI run on PR
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+
+env:
+  # Golang version to use across CI steps
+  GOLANG_VERSION: '1.24'
+
+permissions:
+  contents: read
+
+jobs:
+  fail_if_pull_request_is_draft:
+    if: ${{ github.event.pull_request.draft == true }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fails in order to indicate that pull request needs to be marked as ready to review and other checks needs to pass.
+        run: exit 1
+  
+  codechanges:
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-22.04
+    outputs:
+      backend: ${{ steps.filter.outputs.backend_any_changed || steps.filter.outputs.ci_any_changed }}
+    steps:
+      - uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+      - uses: tj-actions/changed-files@dcc7a0cba800f454d79fff4b993e8c3555bcc0a8 # v45.0.7
+        id: filter
+        with:
+          # Any file which is not under docs/, examples/, or is not a markdown file is counted as a backend file
+          # Also run when ci-run-on-pr has been changed to validate it is working
+          files_yaml: |
+            backend:
+              - '!**.md'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!examples/**'
+              - '!.github/**'
+            ci:
+              - '.github/workflows/ci-run-on-pr.yaml'
+  
+  check-go:
+    name: Ensure Go modules synchronicity
+    runs-on: ubuntu-22.04
+    if: ${{ needs.codechanges.outputs.backend == 'true' && github.event.pull_request.draft == false}}
+    needs:
+      - codechanges
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+      - name: Setup Golang
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+      - name: Download all Go modules
+        run: |
+          go mod download
+      - name: Check for tidiness of go.mod and go.sum
+        run: |
+          go mod tidy
+          git diff --exit-code -- .
+  
+  lint-go:
+    name: Lint Go code
+    runs-on: ubuntu-22.04
+    if: ${{ needs.codechanges.outputs.backend == 'true' && github.event.pull_request.draft == false}}
+    needs:
+      - codechanges
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      pull-requests: read # for golangci/golangci-lint-action to fetch pull requests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+      - name: Setup Golang
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@2226d7cb06a077cd73e56eedd38eecad18e5d837 # v6.5.0
+        with:
+          version: v1.64.5
+          args: --verbose
+ 
+  unit-test:
+    name: Run unit tests
+    runs-on: ubuntu-22.04
+    if: ${{ needs.codechanges.outputs.backend == 'true' && github.event.pull_request.draft == false}}
+    needs:
+      - codechanges
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+      - name: Setup Golang
+        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+      - name: Test
+        run: make test
+      - name: Generate test results artifacts
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: unittests-coverage
+          path: cover.out
+  
+  test-coverage:
+    name: Analyze test coverage
+    if: ${{ needs.codechanges.outputs.backend == 'true' && github.event.pull_request.draft == false}}
+    runs-on: ubuntu-22.04
+    needs:
+      - unit-test
+      - codechanges
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2 # v4.0.0
+      - name: Get unit test code coverage
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: unittests-coverage
+      - name: Generate and print report
+        run: go tool cover -func=cover.out > full-coverage
+      - name: Upload test-coverage artifact
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: full-coverage-report
+          path: full-coverage
+      - name: Report coverage threshold
+        run: |
+          coverage=$(go tool cover -func=cover.out | grep "total:" | awk '{print $NF}' | cut -d'%' -f1)
+          if [ "$(echo "$coverage < 80" | bc)" -eq 1 ]; then
+            echo -e "\033[31mERR: Coverage is less than 80% ($coverage%). Please improve the tests.\033[0m"
+          else
+            echo -e "\033[32mINFO: Coverage is sufficient ($coverage%). Good job!\033[0m"
+          fi
