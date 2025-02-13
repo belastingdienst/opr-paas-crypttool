@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: Paas Crypttool
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: Tax Administration of The Netherlands
+    website: 'https://www.belastingdienst.nl'
+repository-code: 'https://github.com/orgs/belastingdienst/opr-paas-crypttool/'
+url: 'https://github.com/orgs/belastingdienst/opr-paas-crypttool/'
+abstract: >-
+  The goal is to provide a tool that can be used by operators to encrypt and
+  decrypt secrets in their PAAS files using public keys provided by the operator.
+  
+  The tool can also be used to decrypt secrets in PAAS files using the old public
+  keys provided by the operator and then re-encrypt them with a new key.
+  
+  This can be used by operators who have a new key and are ready to replace the
+  old keys, for example as part of a migration process or as part of a regular
+  key rotation process.
+keywords:
+  - go
+  - golang
+  - paas
+  - project
+  - service
+  - crypt
+  - re-encrypt
+license: EUPL-1.2
