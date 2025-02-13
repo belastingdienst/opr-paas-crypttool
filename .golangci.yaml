@@ -1,0 +1,83 @@
+run:
+  timeout: 5m
+  allow-parallel-runners: true
+
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+  # restore some of the defaults
+  # (fill in the rest as needed)
+  exclude-rules:
+    - path: 'internal/*'
+      linters:
+        - dupl
+linters:
+  disable-all: true
+  enable:
+    #- dupl
+    #- errcheck
+    # WARN The linter 'exportloopref' is deprecated (since v1.60.2) due to: Since Go1.22 (loopvar) this linter is no longer relevant. Replaced by copyloopvar.
+    # ERRO [linters_context] exportloopref: This linter is fully inactivated: it will not produce any reports.
+    #- exportloopref
+    - ginkgolinter
+    #- goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    # - lll
+    - misspell
+    #- nakedret
+    #- prealloc
+    - revive
+    #- staticcheck
+    - typecheck
+    #- unconvert
+    #- unparam
+    - unused
+
+linters-settings:
+  revive:
+    rules:
+      - name: comment-spacings
+      - name: add-constant
+        arguments:
+          - allowStrs: '""'
+            allowInts: '0,1,2,3'
+            ignoreFuncs: "assert\\.Len"
+            maxLitCount: '5'
+      - name: line-length-limit
+        severity: warning
+        exclude: ['']
+        arguments: [120]
+
+      - name: comment-spacings
+      - name: indent-error-flow
+      - name: use-errors-new
+      - name: bare-return
+      - name: cognitive-complexity
+      - name: context-as-argument
+      - name: cyclomatic
+      - name: dot-imports
+      - name: early-return
+      - name: empty-block
+      - name: empty-lines
+      - name: exported
+      - name: function-length
+      - name: if-return
+      - name: import-alias-naming
+      - name: import-shadowing
+      - name: increment-decrement
+      - name: max-control-nesting
+      - name: max-public-structs
+        arguments: [14]
+      - name: redefines-builtin-id
+      - name: receiver-naming
+      - name: redundant-import-alias
+      - name: struct-tag
+      - name: superfluous-else
+      - name: unchecked-type-assertion
+      - name: unexported-naming

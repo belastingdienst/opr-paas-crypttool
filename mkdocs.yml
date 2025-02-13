@@ -1,0 +1,83 @@
+site_name: opr-paas-crypttool
+site_url: https://belastingdienst.github.io/opr-paas-crypttool/
+site_author: Dutch Tax Office
+
+# Repository
+repo_name: opr-paas
+repo_url: https://github.com/belastingdienst/opr-paas-crypttool
+edit_uri: edit/main/docs
+
+theme:
+  name: material
+  custom_dir: mkdocs_overrides
+  logo: about/branding/paas-logo-v1-180x180px.png
+  favicon: about/branding/paas-logo-v1-32x32px.png
+  language: en
+  hljs_languages:
+    - yaml
+    - go
+    - bash
+  features:
+    - content.action.edit
+    - navigation.expand
+    - navigation.path
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+    - navigation.top
+    - navigation.prune
+    - search.suggest
+    - search.share
+    - toc.follow
+copyright: >
+  Copyright &copy; 2025 Tax Administration of The Netherlands, software and documentation licensed under EUPL.
+
+extra:
+  version:
+    provider: mike
+    alias: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      title: On this page
+      permalink: true
+      toc_depth: 3
+  - tables
+  - pymdownx.highlight:
+      anchor_linenums: true
+      auto_title: false
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+  - social
+  - tags
+  - privacy
+  - literate-nav:
+      nav_file: README.md
+      implicit_index: true
+  - redirects:
+      redirect_maps:
+        'index.md': 'overview/index.md'
+
+# Navigation
+nav:
+  - Overview: overview/
+  - Developer Guide: development-guide/
+  - About:
+    - Branding: about/branding/
+    - Contributing: about/contributing.md
+    - Code of Conduct: about/code-of-conduct.md
+    - License: about/license.md
