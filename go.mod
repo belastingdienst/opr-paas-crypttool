@@ -2,12 +2,14 @@ module github.com/belastingdienst/opr-paas-crypttool
 
 go 1.24.0
 
+toolchain go1.24.1
+
 require (
 	github.com/belastingdienst/opr-paas v1.9.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	k8s.io/apimachinery v0.32.3
 	sigs.k8s.io/yaml v1.4.0
