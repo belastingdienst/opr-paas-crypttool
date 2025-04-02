@@ -29,7 +29,7 @@ builds:
     ignore:
       - goos: windows
         goarch: arm64
-    main: ./cmd/crypttool
+    main: ./cmd
     binary: crypttool
     ldflags:
       - -s -w -X "github.com/belastingdienst/opr-paas-crypttool/internal/version.Version={{.Version}}"
