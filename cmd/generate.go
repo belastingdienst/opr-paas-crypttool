@@ -25,6 +25,7 @@ func generateCmd() *cobra.Command {
 		Use:   "generate [command options]",
 		Short: "generate a new private and public key and store them in files",
 		Long:  `generate a new private and public key and store them in files`,
+		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if privateKeyFile == "" || publicKeyFile == "" {
 				return fmt.Errorf("privateKeyFile of publicKeyFile not specified")
