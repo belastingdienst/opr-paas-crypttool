@@ -19,6 +19,7 @@ import (
 func PathToFileList(paths []string) ([]string, error) {
 	files := make(map[string]bool)
 	for _, path := range paths {
+		//revive:disable-next-line
 		err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return fmt.Errorf("error while walking the path: %w", err)

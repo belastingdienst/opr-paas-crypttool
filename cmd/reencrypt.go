@@ -29,15 +29,20 @@ func reencryptCmd() *cobra.Command {
 		//revive:disable-next-line
 		Long: `reencrypt can parse yaml/json files with paas objects, decrypt the sshSecrets with the previous private key,
 reencrypt with the new public key and write back the paas to the file in either yaml or json format.`,
+		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
+			var files []string
+			var err error
+
 			if debug {
 				logrus.SetLevel(logrus.DebugLevel)
 			}
-			if files, err := utils.PathToFileList(args); err != nil {
+
+			if files, err = utils.PathToFileList(args); err != nil {
 				return err
-			} else {
-				return reencryptFiles(privateKeyFiles, publicKeyFile, outputFormat, files)
 			}
+
+			return reencryptFiles(privateKeyFiles, publicKeyFile, outputFormat, files)
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line

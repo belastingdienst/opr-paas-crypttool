@@ -24,6 +24,7 @@ func decryptCmd() *cobra.Command {
 		Use:   "decrypt [command options]",
 		Short: "decrypt using private key and print results",
 		Long:  `decrypt using private key and print results`,
+		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if paasName == "" {
 				return fmt.Errorf("a paas must be set with eith --paas or environment variabele PAAS_NAME")

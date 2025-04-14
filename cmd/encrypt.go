@@ -25,15 +25,16 @@ func encryptCmd() *cobra.Command {
 		Use:   "encrypt [command options]",
 		Short: "encrypt using public key and print results",
 		Long:  `encrypt using public key and print results`,
+		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if paasName == "" {
 				return fmt.Errorf("a paas must be set with eith --paas or environment variabele PAAS_NAME")
 			}
 			if dataFile == "" {
 				return crypt.EncryptFromStdin(publicKeyFile, paasName)
-			} else {
-				return crypt.EncryptFile(publicKeyFile, paasName, dataFile)
 			}
+
+			return crypt.EncryptFile(publicKeyFile, paasName, dataFile)
 		},
 		Example: `crypttool encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`,
 	}
