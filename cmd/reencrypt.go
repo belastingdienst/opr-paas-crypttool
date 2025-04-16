@@ -7,6 +7,7 @@ See LICENSE.md for details.
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -113,16 +114,16 @@ func reencryptFiles(privateKeyFiles string, publicKeyFile string, outputFormat s
 		paasAsBytes, err := os.ReadFile(fileName)
 		paasAsString := string(paasAsBytes)
 		if err != nil {
-			return fmt.Errorf("could not read file into string")
+			return errors.New("could not read file into string")
 		}
 
 		// Read paas from file
 		paas, format, err := readPaasFile(fileName)
 		if err != nil {
-			return fmt.Errorf("could not read file")
+			return errors.New("could not read file")
 		}
 
-		paasName := paas.ObjectMeta.Name
+		paasName := paas.Name
 		srcCrypt, err := crypt.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
 		if err != nil {
 			return err
@@ -184,9 +185,11 @@ func reencryptFiles(privateKeyFiles string, publicKeyFile string, outputFormat s
 		}
 
 		// Write paas to file
-		if outputFormat == "json" {
+		// TODO: add unit tests for this
+		switch outputFormat {
+		case "json":
 			format = typeJSON
-		} else if outputFormat == "yaml" {
+		case "yaml":
 			format = typeYAML
 		}
 
@@ -203,7 +206,7 @@ func reencryptFiles(privateKeyFiles string, publicKeyFile string, outputFormat s
 		}
 	}
 
-	errMsg := fmt.Errorf("Finished with %d errors", errNum)
+	errMsg := fmt.Errorf("finished with %d errors", errNum)
 	if errNum > 0 {
 		return errMsg
 	}

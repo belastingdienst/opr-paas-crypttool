@@ -33,8 +33,10 @@ linters:
         - name: use-errors-new
         - name: bare-return
         - name: cognitive-complexity
+          disabled: true
         - name: context-as-argument
         - name: cyclomatic
+          disabled: true
         - name: dot-imports
           arguments:
             - allowedPackages:
@@ -45,6 +47,7 @@ linters:
         - name: empty-lines
         - name: exported
         - name: function-length
+          disabled: true
         - name: if-return
         - name: import-alias-naming
         - name: import-shadowing

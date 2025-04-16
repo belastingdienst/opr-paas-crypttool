@@ -65,13 +65,13 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 GOTEST_COVERAGE = $(LOCALBIN)/go-test-coverage
 
 ## Tool Versions
-GOLANGCI_LINT_VERSION ?= v1.64.5
+GOLANGCI_LINT_VERSION ?= v2.0.2
 GOTEST_COVERAGE_VERSION ?= latest
 
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
 
 .PHONY: gotest-coverage
 gotest-coverage: $(GOTEST_COVERAGE) ## Download go-test-coverage locally if necessary.

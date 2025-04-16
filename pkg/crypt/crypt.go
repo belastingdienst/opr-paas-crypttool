@@ -13,6 +13,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -103,7 +104,7 @@ func (c *Crypt) writePublicKey() error {
 	var err error
 
 	if c.publicKeyPath == "" {
-		return fmt.Errorf("cannot write public key without a specified path")
+		return errors.New("cannot write public key without a specified path")
 	}
 	if publicKeyBytes, err = x509.MarshalPKIXPublicKey(c.publicKey); err != nil {
 		return fmt.Errorf("unable to marshal public key: %w", err)
@@ -136,16 +137,16 @@ func (c *Crypt) getPublicKey() (*rsa.PublicKey, error) {
 		return c.publicKey, nil
 	}
 	if c.publicKeyPath == "" {
-		return nil, fmt.Errorf("cannot get public key without a specified path")
+		return nil, errors.New("cannot get public key without a specified path")
 	}
 	if publicKeyPEM, err := os.ReadFile(c.publicKeyPath); err != nil {
 		panic(err)
 	} else if publicKeyBlock, _ := pem.Decode(publicKeyPEM); publicKeyBlock == nil {
-		return nil, fmt.Errorf("cannot decode public key")
+		return nil, errors.New("cannot decode public key")
 	} else if publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes); err != nil {
 		return nil, fmt.Errorf("public key invalid: %w", err)
 	} else if publicRsaKey, ok = publicKey.(*rsa.PublicKey); !ok {
-		return nil, fmt.Errorf("public key not rsa public key")
+		return nil, errors.New("public key not rsa public key")
 	}
 
 	c.publicKey = publicRsaKey
@@ -198,7 +199,7 @@ func (c *Crypt) Encrypt(secret []byte) (encrypted string, err error) {
 // It will try each key until it successfully decrypts the data or runs out of keys.
 func (c *Crypt) DecryptRsa(data []byte) (decryptedBytes []byte, err error) {
 	if len(c.privateKeys) < 1 {
-		return nil, fmt.Errorf("cannot decrypt without any private key")
+		return nil, errors.New("cannot decrypt without any private key")
 	}
 	for _, pk := range c.privateKeys {
 		if decryptedBytes, err = pk.DecryptRsa(data, c.encryptionContext); err != nil {
@@ -207,7 +208,7 @@ func (c *Crypt) DecryptRsa(data []byte) (decryptedBytes []byte, err error) {
 
 		return decryptedBytes, nil
 	}
-	return nil, fmt.Errorf("unable to decrypt data with any of the private keys")
+	return nil, errors.New("unable to decrypt data with any of the private keys")
 }
 
 // Decrypt decrypts an asymmetrically encrypted message using base64.
