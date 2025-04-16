@@ -7,7 +7,7 @@ See LICENSE.md for details.
 package main
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
 	"github.com/sirupsen/logrus"
@@ -28,7 +28,7 @@ func generateCmd() *cobra.Command {
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if privateKeyFile == "" || publicKeyFile == "" {
-				return fmt.Errorf("privateKeyFile of publicKeyFile not specified")
+				return errors.New("privateKeyFile of publicKeyFile not specified")
 			}
 			return crypt.GenerateKeyPair(privateKeyFile, publicKeyFile)
 		},

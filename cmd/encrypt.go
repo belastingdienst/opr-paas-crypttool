@@ -7,7 +7,7 @@ See LICENSE.md for details.
 package main
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
 	"github.com/sirupsen/logrus"
@@ -28,7 +28,7 @@ func encryptCmd() *cobra.Command {
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if paasName == "" {
-				return fmt.Errorf("a paas must be set with eith --paas or environment variabele PAAS_NAME")
+				return errors.New("a paas must be set with eith --paas or environment variabele PAAS_NAME")
 			}
 			if dataFile == "" {
 				return crypt.EncryptFromStdin(publicKeyFile, paasName)

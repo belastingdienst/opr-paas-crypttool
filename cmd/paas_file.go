@@ -10,6 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -63,7 +64,7 @@ func readPaasFile(file string) (*v1alpha1.Paas, fileFormat, error) {
 	}
 
 	if len(buffer) == 0 {
-		return nil, typeUnknown, fmt.Errorf("empty paas configuration file")
+		return nil, typeUnknown, errors.New("empty paas configuration file")
 	}
 
 	err = json.Unmarshal(buffer, &paas)

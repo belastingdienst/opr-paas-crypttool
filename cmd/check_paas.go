@@ -37,7 +37,7 @@ func checkPaasFiles(privateKeyFiles string, files []string) error {
 			return fmt.Errorf("could not read file %s: %s", fileName, err.Error())
 		}
 
-		paasName := paas.ObjectMeta.Name
+		paasName := paas.Name
 		srcCrypt, err := crypt.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
 		if err != nil {
 			return err
