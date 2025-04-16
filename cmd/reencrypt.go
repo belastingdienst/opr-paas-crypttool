@@ -185,21 +185,24 @@ func reencryptFiles(privateKeyFiles string, publicKeyFile string, outputFormat s
 		}
 
 		// Write paas to file
+		// TODO: add unit tests for this
 		switch outputFormat {
 		case "json":
 			format = typeJSON
 		case "yaml":
 			format = typeYAML
-		case "preserved":
+		}
+
+		if outputFormat == "preserved" {
 			err := writeFile([]byte(paasAsString), fileName)
 			if err != nil {
 				return err
 			}
-		}
-
-		err = writeFormattedFile(paas, fileName, format)
-		if err != nil {
-			return err
+		} else {
+			err := writeFormattedFile(paas, fileName, format)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
