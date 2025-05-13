@@ -65,7 +65,7 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 GOTEST_COVERAGE = $(LOCALBIN)/go-test-coverage
 
 ## Tool Versions
-GOLANGCI_LINT_VERSION ?= v2.0.2
+GOLANGCI_LINT_VERSION ?= v2.1.6
 GOTEST_COVERAGE_VERSION ?= latest
 
 .PHONY: golangci-lint
