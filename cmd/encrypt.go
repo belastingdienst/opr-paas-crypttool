@@ -40,7 +40,7 @@ func encryptCmd() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&publicKeyFile, publicKeyFile, "", "The file to read the public key from")
+	flags.StringVar(&publicKeyFile, argNamePublicKeyFile, "", "The file to read the public key from")
 	flags.StringVar(&dataFile, argNameDataFileKey, "", "The file to read the data to be encrypted from")
 	flags.StringVar(&paasName, argNamePaas, "", "The paas this data is to be encrypted for")
 
