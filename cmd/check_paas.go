@@ -8,6 +8,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
 	"github.com/sirupsen/logrus"
