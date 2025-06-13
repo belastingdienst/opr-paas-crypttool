@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/belastingdienst/opr-paas/api/v1alpha1"
+	"github.com/belastingdienst/opr-paas/v2/api/v1alpha1"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
 )
