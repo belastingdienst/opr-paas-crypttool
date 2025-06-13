@@ -37,11 +37,6 @@ linters:
         - name: context-as-argument
         - name: cyclomatic
           disabled: true
-        - name: dot-imports
-          arguments:
-            - allowedPackages:
-                - github.com/onsi/ginkgo/v2
-                - github.com/onsi/gomega
         - name: early-return
         - name: empty-block
         - name: empty-lines
@@ -73,23 +68,7 @@ linters:
         - '-ST1020'
         - '-ST1021'
         - '-ST1022'
-  exclusions:
-    generated: lax
-    rules:
-      - linters:
-          - dupl
-        path: internal/*
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gofmt
     - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
