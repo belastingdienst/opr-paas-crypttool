@@ -29,7 +29,7 @@ func TestReadPaasFile(t *testing.T) {
 			Name: "tst-tst",
 		},
 		Spec: v1alpha2.PaasSpec{
-			// Quota:        quota.Quota{},
+			Quota:        quota.Quota{},
 			Capabilities: v1alpha2.PaasCapabilities{},
 			Groups:       v1alpha2.PaasGroups{},
 			Namespaces:   v1alpha2.PaasNamespaces{},
