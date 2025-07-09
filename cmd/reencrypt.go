@@ -7,13 +7,8 @@ See LICENSE.md for details.
 package main
 
 import (
-	"errors"
-	"fmt"
-	"os"
-	"strings"
-
+	"github.com/belastingdienst/opr-paas-crypttool/internal/reencrypt"
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
-	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,8 +23,8 @@ func reencryptCmd() *cobra.Command {
 		Use:   "reencrypt [command options]",
 		Short: "reencrypt using old private key to decrypt and new public key to encrypt",
 		//revive:disable-next-line
-		Long: `reencrypt can parse yaml/json files with paas objects, decrypt the sshSecrets with the previous private key,
-reencrypt with the new public key and write back the paas to the file in either yaml or json format.`,
+		Long: `parse yaml/json files with paas objects, decrypt the Secrets with the previous private key,
+reencrypt with the new public key and write the Paas back to the file in either yaml or json format.`,
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			var files []string
@@ -43,7 +38,7 @@ reencrypt with the new public key and write back the paas to the file in either 
 				return err
 			}
 
-			return reencryptFiles(privateKeyFiles, publicKeyFile, outputFormat, files)
+			return reencrypt.Files(privateKeyFiles, publicKeyFile, outputFormat, files)
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
@@ -58,7 +53,7 @@ reencrypt with the new public key and write back the paas to the file in either 
 		argNameOutputFormat,
 		"auto",
 		//revive:disable-next-line
-		"The outputformat for writing a paas, either yaml (machine formatted), json (machine formatted), auto (which will use input format as output, machine formatted) or preserved (which will use the input format and preserve the original syntax including for example comments) ",
+		"The outputformat for writing a Paas, either yaml (machine formatted), json (machine formatted), auto (which will use input format as output, machine formatted) or preserved (which will use the input format and preserve the original syntax including for example comments) ",
 	)
 
 	if err := viper.BindPFlag(argNamePrivateKeyFiles, flags.Lookup(argNamePrivateKeyFiles)); err != nil {
@@ -81,137 +76,4 @@ reencrypt with the new public key and write back the paas to the file in either 
 	}
 
 	return cmd
-}
-
-// reencryptSecret decrypts and then re-encrypts a given secret using the provided
-// source and destination crypt.Crypt instances.
-func reencryptSecret(srcCrypt *crypt.Crypt, dstCrypt *crypt.Crypt, secret string) (string, error) {
-	decrypted, err := srcCrypt.Decrypt(secret)
-	if err != nil {
-		return "", err
-	}
-	logrus.Debugf("decrypted: {checksum: %s, len: %d}", hashData(decrypted), len(decrypted))
-
-	reencrypted, err := dstCrypt.Encrypt(decrypted)
-	if err != nil {
-		return "", err
-	}
-	logrus.Debugf("reencrypted: {checksum: %s, len: %d}", hashData([]byte(reencrypted)), len(reencrypted))
-
-	return reencrypted, nil
-}
-
-// ReencryptFiles reencrypts the secrets of given PAAS files using the provided
-// private and public keys.
-//
-// The function iterates over each file, reads its contents, decrypts and reencrypts
-// the SSH secrets for each capability, and then writes the updated contents back
-// to the original file in the specified output format (JSON or YAML).
-func reencryptFiles(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) error {
-	var errNum int
-	for _, fileName := range files {
-		// Read paas as String to preserve format
-		paasAsBytes, err := os.ReadFile(fileName)
-		paasAsString := string(paasAsBytes)
-		if err != nil {
-			return errors.New("could not read file into string")
-		}
-
-		// Read paas from file
-		paas, format, err := readPaasFile(fileName)
-		if err != nil {
-			return errors.New("could not read file")
-		}
-
-		paasName := paas.Name
-		srcCrypt, err := crypt.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
-		if err != nil {
-			return err
-		}
-
-		dstCrypt, err := crypt.NewCryptFromFiles([]string{}, publicKeyFile, paasName)
-		if err != nil {
-			return err
-		}
-
-		for key, secret := range paas.Spec.SSHSecrets {
-			reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
-			if err != nil {
-				errNum++
-				logrus.Errorf(
-					"failed to decrypt/reencrypt %s.spec.sshSecrets[%s] in %s: %v",
-					paasName,
-					key,
-					fileName,
-					err,
-				)
-				continue
-			}
-
-			paas.Spec.SSHSecrets[key] = reencrypted
-			// Use replaceAll as same secret can occur multiple times and use TrimSpace to prevent removal of newlines.
-			paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-			logrus.Infof("successfully reencrypted %s.spec.sshSecrets[%s] in file %s", paasName, key, fileName)
-		}
-
-		for capName, cap := range paas.Spec.Capabilities {
-			for key, secret := range cap.GetSSHSecrets() {
-				reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
-				if err != nil {
-					errNum++
-					logrus.Errorf(
-						"failed to decrypt/reencrypt %s.spec.capabilities.%s.sshSecrets[%s] in %s: %v",
-						paasName,
-						capName,
-						key,
-						fileName,
-						err,
-					)
-					continue
-				}
-
-				cap.SetSSHSecret(key, reencrypted)
-				// Use replaceAll as same secret can occur multiple times
-				// Use TrimSpace to prevent removal of newlines.
-				paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-				logrus.Infof(
-					"successfully reencrypted %s.spec.capabilities[%s].sshSecrets[%s] in file %s",
-					paasName,
-					capName,
-					key,
-					fileName,
-				)
-			}
-		}
-
-		// Write paas to file
-		// TODO: add unit tests for this
-		switch outputFormat {
-		case "json":
-			format = typeJSON
-		case "yaml":
-			format = typeYAML
-		}
-
-		if outputFormat == "preserved" {
-			err := writeFile([]byte(paasAsString), fileName)
-			if err != nil {
-				return err
-			}
-		} else {
-			err := writeFormattedFile(paas, fileName, format)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	errMsg := fmt.Errorf("finished with %d errors", errNum)
-	if errNum > 0 {
-		return errMsg
-	}
-
-	logrus.Info(errMsg)
-
-	return nil
 }

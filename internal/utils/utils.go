@@ -7,6 +7,8 @@ See LICENSE.md for details.
 package utils
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,4 +45,10 @@ func PathToFileList(paths []string) ([]string, error) {
 		fileList = append(fileList, key)
 	}
 	return fileList, nil
+}
+
+// HashData hashes the given data using SHA-512.
+func HashData(original []byte) string {
+	sum := sha512.Sum512(original)
+	return hex.EncodeToString(sum[:])
 }
