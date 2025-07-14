@@ -15,6 +15,7 @@ import (
 	"github.com/belastingdienst/opr-paas-crypttool/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
+	"github.com/belastingdienst/opr-paas/v3/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 )
 
@@ -112,33 +113,7 @@ func reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string
 	}
 
 	for capName, cap := range paas.Spec.Capabilities {
-		for key, secret := range cap.Secrets {
-			reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
-			if err != nil {
-				errNum++
-				logrus.Errorf(
-					"failed to decrypt/reencrypt %s.spec.capabilities.%s.Secrets[%s] in %s: %v",
-					paasName,
-					capName,
-					key,
-					fileName,
-					err,
-				)
-				continue
-			}
-
-			cap.Secrets[key] = reencrypted
-			// Use replaceAll as same secret can occur multiple times
-			// Use TrimSpace to prevent removal of newlines.
-			paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-			logrus.Infof(
-				"successfully reencrypted %s.spec.capabilities[%s].Secrets[%s] in file %s",
-				paasName,
-				capName,
-				key,
-				fileName,
-			)
-		}
+		errNum += reencryptCapSecrets(fileName, paasName, &paasAsString, capName, &cap, srcCrypt, dstCrypt)
 	}
 
 	// Write paas to file
@@ -163,4 +138,44 @@ func reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string
 	}
 
 	return errNum, nil
+}
+
+//revive:disable-next-line
+func reencryptCapSecrets(fileName, paasName string, paasAsString *string, capName string, capability *v1alpha2.PaasCapability, srcCrypt, dstCrypt *crypt.Crypt) (errNum int) {
+	for key, secret := range capability.Secrets {
+		reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
+		if err != nil {
+			errNum++
+			logrus.Errorf(
+				"failed to decrypt/reencrypt %s.spec.capabilities.%s.Secrets[%s] in %s: %v",
+				paasName,
+				capName,
+				key,
+				fileName,
+				err,
+			)
+			continue
+		}
+
+		capability.Secrets[key] = reencrypted
+		// Use replaceAll as same secret can occur multiple times
+		// Use TrimSpace to prevent removal of newlines.
+		if paasAsString == nil {
+			logrus.Errorf("paasAsString is nil.")
+			errNum++
+			return errNum
+		}
+
+		result := strings.ReplaceAll(*paasAsString, strings.TrimSpace(secret), reencrypted)
+		paasAsString = &result
+		logrus.Infof(
+			"successfully reencrypted %s.spec.capabilities[%s].Secrets[%s] in file %s",
+			paasName,
+			capName,
+			key,
+			fileName,
+		)
+	}
+
+	return errNum
 }
