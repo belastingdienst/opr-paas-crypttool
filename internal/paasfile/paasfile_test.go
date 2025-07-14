@@ -8,6 +8,7 @@ package paasfile
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -292,4 +293,44 @@ func TestWriteFormattedFile(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "null", string(content))
 	})
+}
+
+// Benchmark tests
+func BenchmarkWriteFile(b *testing.B) {
+	const bufferSize = 1024 // 1KB buffer
+
+	tempDir, err := os.MkdirTemp("", "benchmark")
+	require.NoError(b, err)
+	defer os.RemoveAll(tempDir)
+
+	buffer := make([]byte, bufferSize) // 1KB buffer
+	for i := range buffer {
+		buffer[i] = byte(i % 256)
+	}
+
+	for i := 0; b.Loop(); i++ {
+		path := filepath.Join(tempDir, fmt.Sprintf("bench_%d.txt", i))
+		WriteFile(buffer, path)
+	}
+}
+
+func BenchmarkWriteFormattedFileJSON(b *testing.B) {
+	tempDir, err := os.MkdirTemp("", "benchmark")
+	require.NoError(b, err)
+	defer os.RemoveAll(tempDir)
+
+	mockPaas := &v1alpha2.Paas{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Paas",
+			APIVersion: "cpet.belastingdienst.nl/v1alpha2",
+		},
+		Spec: v1alpha2.PaasSpec{
+			Requestor: "benchmark paasfile_test",
+		},
+	}
+
+	for i := 0; b.Loop(); i++ {
+		path := filepath.Join(tempDir, fmt.Sprintf("bench_%d.json", i))
+		WriteFormattedFile(mockPaas, path, FiletypeJSON)
+	}
 }
