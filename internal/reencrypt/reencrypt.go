@@ -42,102 +42,14 @@ func reencryptSecret(srcCrypt *crypt.Crypt, dstCrypt *crypt.Crypt, secret string
 // The function iterates over each file, reads its contents, decrypts and reencrypts
 // the SSH secrets for each capability, and then writes the updated contents back
 // to the original file in the specified output format (JSON or YAML).
-func Files(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) error {
+func Files(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) (err error) {
 	var errNum int
+
 	for _, fileName := range files {
-		// Read paas as String to preserve format
-		paasAsBytes, err := os.ReadFile(fileName)
-		paasAsString := string(paasAsBytes)
-		if err != nil {
-			return errors.New("could not read file into string")
-		}
+		errNum, err = reencryptFile(fileName, privateKeyFiles, publicKeyFile, outputFormat)
 
-		// Read paas from file
-		paas, format, err := paasfile.ReadPaasFile(fileName)
-		if err != nil {
-			return errors.New("could not read file")
-		}
-
-		paasName := paas.Name
-		srcCrypt, err := crypt.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
 		if err != nil {
 			return err
-		}
-
-		dstCrypt, err := crypt.NewCryptFromFiles([]string{}, publicKeyFile, paasName)
-		if err != nil {
-			return err
-		}
-
-		for key, secret := range paas.Spec.Secrets {
-			reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
-			if err != nil {
-				errNum++
-				logrus.Errorf(
-					"failed to decrypt/reencrypt %s.spec.Secrets[%s] in %s: %v",
-					paasName,
-					key,
-					fileName,
-					err,
-				)
-				continue
-			}
-
-			paas.Spec.Secrets[key] = reencrypted
-			// Use replaceAll as same secret can occur multiple times and use TrimSpace to prevent removal of newlines.
-			paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-			logrus.Infof("successfully reencrypted %s.spec.Secrets[%s] in file %s", paasName, key, fileName)
-		}
-
-		for capName, cap := range paas.Spec.Capabilities {
-			for key, secret := range cap.Secrets {
-				reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
-				if err != nil {
-					errNum++
-					logrus.Errorf(
-						"failed to decrypt/reencrypt %s.spec.capabilities.%s.Secrets[%s] in %s: %v",
-						paasName,
-						capName,
-						key,
-						fileName,
-						err,
-					)
-					continue
-				}
-
-				cap.Secrets[key] = reencrypted
-				// Use replaceAll as same secret can occur multiple times
-				// Use TrimSpace to prevent removal of newlines.
-				paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-				logrus.Infof(
-					"successfully reencrypted %s.spec.capabilities[%s].Secrets[%s] in file %s",
-					paasName,
-					capName,
-					key,
-					fileName,
-				)
-			}
-		}
-
-		// Write paas to file
-		// TODO: add unit tests for this
-		switch outputFormat {
-		case "json":
-			format = paasfile.FiletypeJSON
-		case "yaml":
-			format = paasfile.FiletypeYAML
-		}
-
-		if outputFormat == "preserved" {
-			err := paasfile.WriteFile([]byte(paasAsString), fileName)
-			if err != nil {
-				return err
-			}
-		} else {
-			err := paasfile.WriteFormattedFile(paas, fileName, format)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -149,4 +61,106 @@ func Files(privateKeyFiles string, publicKeyFile string, outputFormat string, fi
 	logrus.Info(errMsg)
 
 	return nil
+}
+
+//revive:disable-next-line
+func reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string, outputFormat string) (errnum int, err error) {
+	var errNum int
+
+	// Read paas as String to preserve format
+	paasAsBytes, err := os.ReadFile(fileName)
+	paasAsString := string(paasAsBytes)
+	if err != nil {
+		return 0, errors.New("could not read file into string")
+	}
+
+	// Read paas from file
+	paas, format, err := paasfile.ReadPaasFile(fileName)
+	if err != nil {
+		return 0, errors.New("could not read file")
+	}
+
+	paasName := paas.Name
+	srcCrypt, err := crypt.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
+	if err != nil {
+		return 0, err
+	}
+
+	dstCrypt, err := crypt.NewCryptFromFiles([]string{}, publicKeyFile, paasName)
+	if err != nil {
+		return 0, err
+	}
+
+	for key, secret := range paas.Spec.Secrets {
+		reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
+		if err != nil {
+			errNum++
+			logrus.Errorf(
+				"failed to decrypt/reencrypt %s.spec.Secrets[%s] in %s: %v",
+				paasName,
+				key,
+				fileName,
+				err,
+			)
+			continue
+		}
+
+		paas.Spec.Secrets[key] = reencrypted
+		// Use replaceAll as same secret can occur multiple times and use TrimSpace to prevent removal of newlines.
+		paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
+		logrus.Infof("successfully reencrypted %s.spec.Secrets[%s] in file %s", paasName, key, fileName)
+	}
+
+	for capName, cap := range paas.Spec.Capabilities {
+		for key, secret := range cap.Secrets {
+			reencrypted, err := reencryptSecret(srcCrypt, dstCrypt, secret)
+			if err != nil {
+				errNum++
+				logrus.Errorf(
+					"failed to decrypt/reencrypt %s.spec.capabilities.%s.Secrets[%s] in %s: %v",
+					paasName,
+					capName,
+					key,
+					fileName,
+					err,
+				)
+				continue
+			}
+
+			cap.Secrets[key] = reencrypted
+			// Use replaceAll as same secret can occur multiple times
+			// Use TrimSpace to prevent removal of newlines.
+			paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
+			logrus.Infof(
+				"successfully reencrypted %s.spec.capabilities[%s].Secrets[%s] in file %s",
+				paasName,
+				capName,
+				key,
+				fileName,
+			)
+		}
+	}
+
+	// Write paas to file
+	// TODO: add unit tests for this
+	switch outputFormat {
+	case "json":
+		format = paasfile.FiletypeJSON
+	case "yaml":
+		format = paasfile.FiletypeYAML
+	}
+
+	if outputFormat == "preserved" {
+		err := paasfile.WriteFile([]byte(paasAsString), fileName)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		err := paasfile.WriteFormattedFile(paas, fileName, format)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return errNum, nil
 }
