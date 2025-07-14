@@ -21,7 +21,7 @@ import (
 
 // reencryptSecret decrypts and then re-encrypts a given secret using the provided
 // source and destination crypt.Crypt instances.
-func reencryptSecret(srcCrypt *crypt.Crypt, dstCrypt *crypt.Crypt, secret string) (string, error) {
+func reencryptSecret(srcCrypt crypt.Cryptor, dstCrypt crypt.Cryptor, secret string) (string, error) {
 	decrypted, err := srcCrypt.Decrypt(secret)
 	if err != nil {
 		return "", err
