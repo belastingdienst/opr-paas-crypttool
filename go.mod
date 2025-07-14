@@ -5,7 +5,7 @@ go 1.24.4
 toolchain go1.24.5
 
 require (
-	github.com/belastingdienst/opr-paas/v3 v3.1.0
+	github.com/belastingdienst/opr-paas/v3 v3.2.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1

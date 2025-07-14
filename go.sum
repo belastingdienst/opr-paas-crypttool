@@ -1,5 +1,5 @@
-github.com/belastingdienst/opr-paas/v3 v3.1.0 h1:LcgKQ9+9x7zXW0TvDGH/eYGOFVOjWc5/HAkmvT7glzs=
-github.com/belastingdienst/opr-paas/v3 v3.1.0/go.mod h1:eWcCVr2szGumuRd6ss2xs3Fd/fJW6G1SbdPL6nGf8rM=
+github.com/belastingdienst/opr-paas/v3 v3.2.1 h1:mnv1bWVJ3YC+cdh9asFNi9/bxuCYSTOngbhIg42sH78=
+github.com/belastingdienst/opr-paas/v3 v3.2.1/go.mod h1:eWcCVr2szGumuRd6ss2xs3Fd/fJW6G1SbdPL6nGf8rM=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
