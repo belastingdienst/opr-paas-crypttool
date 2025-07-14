@@ -24,6 +24,11 @@ import (
 // AESKeySize is the key size of AES in bits.
 const AESKeySize = 4096
 
+type Cryptor interface {
+	Decrypt(string) ([]byte, error)
+	Encrypt([]byte) (string, error)
+}
+
 // Crypt represents a cryptographic object that performs various encryption and
 // decryption tasks.
 type Crypt struct {
