@@ -22,8 +22,8 @@ func decryptCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "decrypt [command options]",
-		Short: "decrypt using private key and print results",
-		Long:  `decrypt using private key and print results`,
+		Short: "decrypt content from stdin using private key and print results",
+		Long:  `decrypt content from stdin using private key and print results`,
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
 			if paasName == "" {
@@ -36,7 +36,7 @@ func decryptCmd() *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringVar(&privateKeyFiles, argNamePrivateKeyFiles, "", "The file to read the private key from")
-	flags.StringVar(&paasName, argNamePaas, "", "The paas this data is to be encrypted for")
+	flags.StringVar(&paasName, argNamePaas, "", "The paas this data is to be decrypted for")
 
 	if err := viper.BindPFlag(argNamePrivateKeyFiles, flags.Lookup(argNamePrivateKeyFiles)); err != nil {
 		logrus.Errorf("error binding private keys: %v", err)
