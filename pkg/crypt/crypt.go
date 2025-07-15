@@ -21,6 +21,11 @@ import (
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 )
 
+type Cryptor interface {
+	Decrypt(string) ([]byte, error)
+	Encrypt([]byte) (string, error)
+}
+
 // AESKeySize is the key size of AES in bits.
 const AESKeySize = 4096
 
@@ -31,6 +36,11 @@ type Crypt struct {
 	publicKeyPath     string
 	publicKey         *rsa.PublicKey
 	encryptionContext []byte
+}
+
+// Factory is an interface for creating Crypt objects.
+type Factory interface {
+	NewCryptFromFiles([]string, string, string) (Cryptor, error)
 }
 
 // NewCryptFromFiles returns a Crypt based on the provided privateKeyPaths and publicKeyPath using the encryptionContext

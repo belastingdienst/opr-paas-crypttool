@@ -9,6 +9,7 @@ bin/*
 testbin/*
 Dockerfile.cross
 *.tar
+tmp
 
 # dev environment specific files
 go.work*
