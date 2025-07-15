@@ -18,23 +18,23 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-type fileFormat uint
+type FileFormat uint
 
 // File formats supported by this package
 const (
-	FiletypeUnknown fileFormat = iota
+	FiletypeUnknown FileFormat = iota
 	FiletypeJSON
 	FiletypeYAML
 )
 
-var fileFormatString = map[fileFormat]string{
+var fileFormatString = map[FileFormat]string{
 	FiletypeJSON:    "json",
 	FiletypeYAML:    "yaml",
 	FiletypeUnknown: "unknown",
 }
 
 // Returns a string representation of fileFormat, if known.
-func (ff fileFormat) String() string {
+func (ff FileFormat) String() string {
 	if s, exists := fileFormatString[ff]; exists {
 		return s
 	}
@@ -53,7 +53,7 @@ func (ip *InvalidPaasFileFormat) Error() string {
 }
 
 // ReadPaasFile reads a PaaS file and returns the parsed Paas object.
-func ReadPaasFile(filePath string) (*v1alpha2.Paas, fileFormat, error) {
+func ReadPaasFile(filePath string) (*v1alpha2.Paas, FileFormat, error) {
 	var paas v1alpha2.Paas
 	var buffer []byte
 
@@ -95,7 +95,7 @@ func ReadPaasFile(filePath string) (*v1alpha2.Paas, fileFormat, error) {
 
 // ReadV1PaasFile reads a v1alpha1 Paas file, converts it to a v1alpha2 Paas and
 // returns the parsed Paas object.
-func ReadV1PaasFile(filePath string) (*v1alpha2.Paas, fileFormat, error) {
+func ReadV1PaasFile(filePath string) (*v1alpha2.Paas, FileFormat, error) {
 	var paas v1alpha1.Paas
 	var buffer []byte
 
@@ -150,7 +150,7 @@ func WriteFile(buffer []byte, path string) error {
 }
 
 // WriteFormattedFile writes the given paas to disk in a format that can be read by the parser.
-func WriteFormattedFile(paas *v1alpha2.Paas, path string, format fileFormat) error {
+func WriteFormattedFile(paas *v1alpha2.Paas, path string, format FileFormat) error {
 	var buffer []byte
 	var err error
 
