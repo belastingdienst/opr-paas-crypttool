@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// FileFormat is the type of the Paas file; json, yaml, unknown
 type FileFormat uint
 
 // File formats supported by this package

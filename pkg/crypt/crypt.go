@@ -21,6 +21,7 @@ import (
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 )
 
+// Cryptor allows you to de- and encrypt data easily for use in a Paas
 type Cryptor interface {
 	Decrypt(string) ([]byte, error)
 	Encrypt([]byte) (string, error)
