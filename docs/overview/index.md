@@ -21,7 +21,7 @@ This documentation site is arranged into a generic section called overview and a
 developer section.
 
 If you have any questions or feel that certain parts of the documentation can be
-improved or expanded, feel free to create a [PR](https://github.com/belastingdienst/opr-paas/pulls)
+improved or expanded, feel free to create a [PR](https://github.com/belastingdienst/opr-paas-crypttool/pulls)
 (Pull Request).
 
 For full contribution guidelines, see the `CONTRIBUTING.md` file in the root of

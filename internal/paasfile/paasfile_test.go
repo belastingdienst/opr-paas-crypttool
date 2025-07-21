@@ -4,33 +4,42 @@ Licensed under the EUPL 1.2.
 See LICENSE.md for details.
 */
 
-package main
+package paasfile
 
 import (
 	"testing"
 
-	"github.com/belastingdienst/opr-paas/v2/api/v1alpha1"
+	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
+	"github.com/belastingdienst/opr-paas/v3/api/v1alpha2"
+	"github.com/belastingdienst/opr-paas/v3/pkg/quota"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+var equalErrMsg = `Error should be: %v, got: %v`
+
 func TestReadPaasFile(t *testing.T) {
-	expectedPaas := &v1alpha1.Paas{
+	expectedPaas := &v1alpha2.Paas{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Paas",
-			APIVersion: "cpet.belastingdienst.nl/v1alpha1",
+			APIVersion: "cpet.belastingdienst.nl/v1alpha2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "tst-tst",
 		},
-		Spec:   v1alpha1.PaasSpec{},
-		Status: v1alpha1.PaasStatus{},
+		Spec: v1alpha2.PaasSpec{
+			Quota:        quota.Quota{},
+			Capabilities: v1alpha2.PaasCapabilities{},
+			Groups:       v1alpha2.PaasGroups{},
+			Namespaces:   v1alpha2.PaasNamespaces{},
+		},
+		Status: v1alpha2.PaasStatus{},
 	}
 
 	// invalid path
-	paas, typeString, err := readPaasFile("invalid/path")
+	paas, typeString, err := ReadPaasFile("invalid/path")
 	expectedErrorMsg := "open invalid/path: no such file or directory"
 	assert.EqualErrorf(
 		t,
@@ -41,11 +50,11 @@ func TestReadPaasFile(t *testing.T) {
 		err,
 	) //nolint:testifylint // just no
 	assert.Nil(t, paas)
-	assert.Equal(t, typeUnknown, typeString)
+	assert.Equal(t, FiletypeUnknown, typeString)
 
 	// empty yaml file
-	paas, typeString, err = readPaasFile("testdata/emptyPaas.yml")
-	expectedErrorMsg = "empty paas configuration file"
+	paas, typeString, err = ReadPaasFile("testdata/emptyPaas.yml")
+	expectedErrorMsg = "empty paas file"
 	require.Error(t, err)
 	assert.Nil(t, paas)
 	assert.Empty(t, typeString)
@@ -59,8 +68,8 @@ func TestReadPaasFile(t *testing.T) {
 	) //nolint:testifylint
 
 	// empty json file
-	paas, typeString, err = readPaasFile("testdata/emptyPaas.json")
-	expectedErrorMsg = "empty paas configuration file"
+	paas, typeString, err = ReadPaasFile("testdata/emptyPaas.json")
+	expectedErrorMsg = "empty paas file"
 	require.Error(t, err)
 	assert.Nil(t, paas)
 	assert.Empty(t, typeString)
@@ -74,28 +83,28 @@ func TestReadPaasFile(t *testing.T) {
 	) //nolint:testifylint
 
 	// minimal yaml file
-	paas, typeString, err = readPaasFile("testdata/minimalPaas.yml")
+	paas, typeString, err = ReadPaasFile("testdata/minimalPaas.yml")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, typeYAML, typeString)
-	assert.NotEqual(t, typeJSON, typeString)
+	assert.Equal(t, FiletypeYAML, typeString)
+	assert.NotEqual(t, FiletypeJSON, typeString)
 
 	// minimal json file
-	paas, typeString, err = readPaasFile("testdata/minimalPaas.json")
+	paas, typeString, err = ReadPaasFile("testdata/minimalPaas.json")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, typeJSON, typeString)
-	assert.NotEqual(t, typeYAML, typeString)
+	assert.Equal(t, FiletypeJSON, typeString)
+	assert.NotEqual(t, FiletypeYAML, typeString)
 
 	// unsupported field in yaml file
-	paas, typeString, err = readPaasFile("testdata/unsupportedFieldsPaas.yml")
+	paas, typeString, err = ReadPaasFile("testdata/unsupportedFieldsPaas.yml")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, typeYAML, typeString)
-	assert.NotEqual(t, typeJSON, typeString)
+	assert.Equal(t, FiletypeYAML, typeString)
+	assert.NotEqual(t, FiletypeJSON, typeString)
 
 	// invalid file format
-	paas, typeString, err = readPaasFile("testdata/invalidFormat.toml")
+	paas, typeString, err = ReadPaasFile("testdata/invalidFormat.toml")
 	assert.Nil(t, paas)
 	assert.Empty(t, typeString)
 	assert.EqualErrorf(
@@ -108,7 +117,7 @@ func TestReadPaasFile(t *testing.T) {
 
 func TestHashData(t *testing.T) {
 	testString := "My Wonderful Test String"
-	out := hashData([]byte(testString))
+	out := utils.HashData([]byte(testString))
 
 	assert.Equal(
 		t,
