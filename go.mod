@@ -1,8 +1,6 @@
 module github.com/belastingdienst/opr-paas-crypttool
 
-go 1.24.4
-
-toolchain go1.24.5
+go 1.25
 
 require (
 	github.com/belastingdienst/opr-paas/v3 v3.3.2
