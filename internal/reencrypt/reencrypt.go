@@ -7,16 +7,18 @@ See LICENSE.md for details.
 package reencrypt
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/belastingdienst/opr-paas-crypttool/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
-	"github.com/belastingdienst/opr-paas/v3/api/v1alpha2"
+	"github.com/belastingdienst/opr-paas/v4/api/v1alpha2"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert/yaml"
 )
 
 // FileOperations interface for file I/O operations (for testing)
@@ -216,6 +218,18 @@ func (s *Service) Files(privateKeyFiles string, publicKeyFile string, outputForm
 	var totalErrors int
 
 	for _, fileName := range files {
+		content, err := os.ReadFile(fileName)
+		if err != nil {
+			logrus.Warnf("Skipping file %s: could not read: %v", fileName, err)
+			continue
+		}
+
+		// Check if it's a Paas object before proceeding
+		if !isPaasObject(fileName, content) {
+			logrus.Debugf("Skipping file %s: not a Paas object", fileName)
+			continue
+		}
+
 		errNum, err := s.reencryptFile(fileName, privateKeyFiles, publicKeyFile, outputFormat)
 		if err != nil {
 			return err
@@ -232,20 +246,51 @@ func (s *Service) Files(privateKeyFiles string, publicKeyFile string, outputForm
 	return nil
 }
 
+func isPaasObject(filePath string, content []byte) bool {
+	ext := strings.ToLower(filepath.Ext(filePath))
+
+	var data map[string]interface{}
+	var err error
+
+	switch ext {
+	case ".json":
+		err = json.Unmarshal(content, &data)
+	case ".yaml", ".yml":
+		err = yaml.Unmarshal(content, &data)
+	default:
+		return false
+	}
+
+	if err != nil {
+		logrus.Debugf("Failed to parse %s: %v", filePath, err)
+		return false
+	}
+
+	// Check if Kind field exists and equals "Paas"
+	if kind, ok := data["Kind"].(string); ok && kind == "Paas" {
+		return true
+	}
+	if kind, ok := data["kind"].(string); ok && kind == "Paas" {
+		return true
+	}
+
+	return false
+}
+
 // reencryptFile handles the file-level reencryption logic
 func (s *Service) reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string,
 	outputFormat string) (int, error) {
 	// Read paas as bytes to preserve format
 	paasAsBytes, err := s.fileOps.ReadFile(fileName)
 	if err != nil {
-		return 0, errors.New("could not read file into string")
+		return 0, fmt.Errorf("could not read into string, file %s: %s", fileName, err)
 	}
 	paasAsString := string(paasAsBytes)
 
 	// Read paas from file
 	paas, format, err := paasfile.ReadPaasFile(fileName)
 	if err != nil {
-		return 0, errors.New("could not read file")
+		return 0, fmt.Errorf("could not read file %s: %s", fileName, err)
 	}
 
 	// Perform reencryption
