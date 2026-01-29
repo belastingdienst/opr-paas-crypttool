@@ -1,3 +1,5 @@
+GO := $(shell which go)
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -34,11 +36,11 @@ help: ## Display this help.
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
-	go fmt ./...
+	$(GO) fmt ./...
 
 .PHONY: vet
 vet: ## Run go vet against code.
-	go vet ./...
+	$(GO) vet ./...
 
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter & yamllint
@@ -50,8 +52,12 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 
 .PHONY: test
 test: fmt vet gotest-coverage ## Run fmt, vet and tests with coverage.
-	go test $$(go list ./... ) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+	$(GO) test $$($(GO) list ./... ) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOTEST_COVERAGE} --config=./.testcoverage.yaml
+
+.PHONY: build
+build: ## Build the application.
+	$(GO) build -o $(LOCALBIN)/crypttool ./cmd/...
 
 ##@ Dependencies
 
@@ -68,10 +74,19 @@ GOTEST_COVERAGE = $(LOCALBIN)/go-test-coverage
 GOLANGCI_LINT_VERSION ?= v2.4.0
 GOTEST_COVERAGE_VERSION ?= latest
 
+## Install golangci-lint using official script instead of 'go install' as that
+## last one does not yield a working version.
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+	@[ -f "$(GOLANGCI_LINT)-$(GOLANGCI_LINT_VERSION)" ] || { \
+		set -e; \
+		echo "Downloading golangci-lint $(GOLANGCI_LINT_VERSION)" ;\
+		rm -f $(GOLANGCI_LINT) || true ;\
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/refs/tags/$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b $(LOCALBIN) $(GOLANGCI_LINT_VERSION) ;\
+		mv $(GOLANGCI_LINT) $(GOLANGCI_LINT)-$(GOLANGCI_LINT_VERSION) ;\
+	}
+	@ln -sf $(GOLANGCI_LINT)-$(GOLANGCI_LINT_VERSION) $(GOLANGCI_LINT)
 
 .PHONY: gotest-coverage
 gotest-coverage: $(GOTEST_COVERAGE) ## Download go-test-coverage locally if necessary.
@@ -88,7 +103,7 @@ set -e; \
 package=$(2)@$(3) ;\
 echo "Downloading $${package}" ;\
 rm -f $(1) || true ;\
-GOBIN=$(LOCALBIN) go install $${package} ;\
+GOBIN=$(LOCALBIN) $(GO) install $${package} ;\
 mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)

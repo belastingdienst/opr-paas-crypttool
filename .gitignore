@@ -35,3 +35,6 @@ site/
 dist/
 
 .vscode/
+
+# Ignore localtest directory
+localtest/

@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/belastingdienst/opr-paas/v3/api/v1alpha1"
-	"github.com/belastingdienst/opr-paas/v3/api/v1alpha2"
+	"github.com/belastingdienst/opr-paas/v4/api/v1alpha1"
+	"github.com/belastingdienst/opr-paas/v4/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
 )
@@ -81,7 +81,7 @@ func ReadPaasFile(filePath string) (*v1alpha2.Paas, FileFormat, error) {
 	if err == nil {
 		return &paas, FiletypeJSON, nil
 	}
-	logrus.Debugf("could not parse %s as json: %e", filePath, err)
+	logrus.Debugf("could not parse %s as json, perhaps its a yaml file: %e", filePath, err)
 
 	// Is it a YAML?
 	err = yaml.Unmarshal(buffer, &paas)
@@ -111,7 +111,7 @@ func ReadV1PaasFile(filePath string) (*v1alpha2.Paas, FileFormat, error) {
 	if err == nil {
 		return convertFromV1alpha1(paas), FiletypeJSON, nil
 	}
-	logrus.Debugf("could not parse %s as json: %e", filePath, err)
+	logrus.Debugf("could not parse %s as json, perhaps its a yaml file: %e", filePath, err)
 
 	// Is it a YAML?
 	err = yaml.Unmarshal(buffer, &paas)

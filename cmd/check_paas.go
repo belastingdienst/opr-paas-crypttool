@@ -12,7 +12,7 @@ import (
 	"github.com/belastingdienst/opr-paas-crypttool/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
-	"github.com/belastingdienst/opr-paas/v3/api/v1alpha2"
+	"github.com/belastingdienst/opr-paas/v4/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
