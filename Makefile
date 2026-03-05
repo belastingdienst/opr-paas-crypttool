@@ -108,3 +108,12 @@ mv $(1) $(1)-$(3) ;\
 } ;\
 ln -sf $(1)-$(3) $(1)
 endef
+
+.PHONY: install-go-test-coverage
+install-go-test-coverage:
+	go install github.com/vladopajic/go-test-coverage/v2@latest
+
+.PHONY: check-coverage
+check-coverage: install-go-test-coverage test ## check unittest coverage
+	${GOBIN}/go-test-coverage --config=./.testcoverage.yaml
+

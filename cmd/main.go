@@ -68,6 +68,7 @@ func createApp() *cobra.Command {
 
 	rootCommand.PersistentFlags().BoolVar(&debug, "debug", false, "enable debug output")
 	rootCommand.AddCommand(
+		migrateCmd(),
 		decryptCmd(),
 		encryptCmd(),
 		reencryptCmd(),

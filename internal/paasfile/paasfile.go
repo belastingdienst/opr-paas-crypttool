@@ -126,7 +126,7 @@ func ReadV1PaasFile(filePath string) (*v1alpha2.Paas, FileFormat, error) {
 
 // convert v1alpha1 into v1alpha2
 func convertFromV1alpha1(in v1alpha1.Paas) *v1alpha2.Paas {
-	var converted = &v1alpha2.Paas{}
+	converted := &v1alpha2.Paas{}
 
 	in.ConvertTo(converted)
 	converted.APIVersion = "cpet.belastingdienst.nl/v1alpha2"
@@ -162,6 +162,7 @@ func WriteFormattedFile(paas *v1alpha2.Paas, path string, format FileFormat) err
 		buffer, err = json.Marshal(&paas)
 	case FiletypeYAML:
 		buffer, err = yaml.Marshal(&paas)
+		buffer = append([]byte("---\n"), buffer...)
 	}
 
 	if err != nil {

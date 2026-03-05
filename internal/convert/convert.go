@@ -4,7 +4,7 @@ Licensed under the EUPL 1.2.
 See LICENSE.md for details.
 */
 
-package reencrypt
+package convert
 
 import (
 	"encoding/json"
@@ -43,7 +43,8 @@ func (f *DefaultFileOperations) WriteFile(filename string, data []byte) error {
 
 // WriteFormattedFile writes a Paas object to a file in the specified format.
 func (f *DefaultFileOperations) WriteFormattedFile(paas *v1alpha2.Paas, filename string,
-	format paasfile.FileFormat) error {
+	format paasfile.FileFormat,
+) error {
 	return paasfile.WriteFormattedFile(paas, filename, format)
 }
 
@@ -57,7 +58,8 @@ type DefaultCryptFactory struct{}
 
 // NewCryptFromFiles implements CryptFactory.NewCryptFromFiles
 func (c *DefaultCryptFactory) NewCryptFromFiles(privateKeyFiles []string, publicKeyFile string,
-	paasName string) (crypt.Cryptor, error) {
+	paasName string,
+) (crypt.Cryptor, error) {
 	return crypt.NewCryptFromFiles(privateKeyFiles, publicKeyFile, paasName)
 }
 
@@ -68,23 +70,23 @@ type ReencryptionResult struct {
 	ErrorCount        int
 }
 
-// Service handles the core reencryption logic
-type Service struct {
+// ConversionService handles the core conversion logic
+type ConversionService struct {
 	fileOps      FileOperations
 	cryptFactory CryptFactory
 }
 
-// NewReencryptService creates a new ReencryptService with default implementations
-func NewReencryptService() *Service {
-	return &Service{
+// NewConversionService creates a new ReencryptService with default implementations
+func NewConversionService() *ConversionService {
+	return &ConversionService{
 		fileOps:      &DefaultFileOperations{},
 		cryptFactory: &DefaultCryptFactory{},
 	}
 }
 
-// NewReencryptServiceWithDeps creates a new ReencryptService with custom dependencies (for testing)
-func NewReencryptServiceWithDeps(fileOps FileOperations, cryptFactory CryptFactory) *Service {
-	return &Service{
+// NewConversionServiceWithDeps creates a new ReencryptService with custom dependencies (for testing)
+func NewConversionServiceWithDeps(fileOps FileOperations, cryptFactory CryptFactory) *ConversionService {
+	return &ConversionService{
 		fileOps:      fileOps,
 		cryptFactory: cryptFactory,
 	}
@@ -92,8 +94,9 @@ func NewReencryptServiceWithDeps(fileOps FileOperations, cryptFactory CryptFacto
 
 // reencryptSecret decrypts and then re-encrypts a given secret using the provided
 // source and destination crypt.Crypt instances.
-func (s *Service) reencryptSecret(srcCrypt crypt.Cryptor, dstCrypt crypt.Cryptor,
-	secret string) (string, error) {
+func (s *ConversionService) reencryptSecret(srcCrypt crypt.Cryptor, dstCrypt crypt.Cryptor,
+	secret string,
+) (string, error) {
 	decrypted, err := srcCrypt.Decrypt(secret)
 	if err != nil {
 		return "", err
@@ -110,8 +113,9 @@ func (s *Service) reencryptSecret(srcCrypt crypt.Cryptor, dstCrypt crypt.Cryptor
 }
 
 // ReencryptPaasData performs the core reencryption logic on PAAS data
-func (s *Service) ReencryptPaasData(paas *v1alpha2.Paas, paasAsString string,
-	privateKeyFiles string, publicKeyFile string) (*ReencryptionResult, error) {
+func (s *ConversionService) ReencryptPaasData(paas *v1alpha2.Paas, paasAsString string,
+	privateKeyFiles string, publicKeyFile string,
+) (*ReencryptionResult, error) {
 	paasName := paas.Name
 
 	srcCrypt, err := s.cryptFactory.NewCryptFromFiles([]string{privateKeyFiles}, "", paasName)
@@ -155,8 +159,9 @@ func (s *Service) ReencryptPaasData(paas *v1alpha2.Paas, paasAsString string,
 }
 
 // reencryptCapSecrets handles reencryption of capability secrets
-func (s *Service) reencryptCapSecrets(paasName string, paasAsString *string, capName string,
-	capability *v1alpha2.PaasCapability, srcCrypt, dstCrypt crypt.Cryptor) int {
+func (s *ConversionService) reencryptCapSecrets(paasName string, paasAsString *string, capName string,
+	capability *v1alpha2.PaasCapability, srcCrypt, dstCrypt crypt.Cryptor,
+) int {
 	errNum := 0
 
 	for key, secret := range capability.Secrets {
@@ -185,8 +190,12 @@ func (s *Service) reencryptCapSecrets(paasName string, paasAsString *string, cap
 }
 
 // WriteReencryptedFile writes the reencrypted data to file based on output format
-func (s *Service) WriteReencryptedFile(result *ReencryptionResult, fileName string, outputFormat string,
-	originalFormat paasfile.FileFormat) error {
+func (s *ConversionService) WriteReencryptedFile(
+	result *ReencryptionResult,
+	fileName string,
+	outputFormat string,
+	originalFormat paasfile.FileFormat,
+) error {
 	var format paasfile.FileFormat
 
 	switch outputFormat {
@@ -205,16 +214,51 @@ func (s *Service) WriteReencryptedFile(result *ReencryptionResult, fileName stri
 	return s.fileOps.WriteFormattedFile(result.UpdatedPaas, fileName, format)
 }
 
-// Files reencrypts the secrets of given PAAS files using the provided private
-// and public keys.
-func Files(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) error {
-	service := NewReencryptService()
-	return service.Files(privateKeyFiles, publicKeyFile, outputFormat, files)
+// Migrate converts the secrets of given PAAS from one version to another
+func Migrate(files []string, outputFormat string) error {
+	service := NewConversionService()
+	return service.Migrate(files, outputFormat)
 }
 
-// Files reencrypts the secrets of given PAAS files using the provided private
+// Reencrypt reencrypts the secrets of given PAAS files using the provided private
 // and public keys.
-func (s *Service) Files(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) error {
+func Reencrypt(privateKeyFiles string, publicKeyFile string, outputFormat string, files []string) error {
+	service := NewConversionService()
+	return service.Reencrypt(privateKeyFiles, publicKeyFile, outputFormat, files)
+}
+
+// Migrate migrates the version of a Paas from one version to another
+func (s *ConversionService) Migrate(files []string, outputFormat string) error {
+	for _, fileName := range files {
+		content, err := os.ReadFile(fileName)
+		if err != nil {
+			logrus.Warnf("Skipping file %s: could not read: %v", fileName, err)
+			continue
+		}
+
+		// Check if it's a Paas object before proceeding
+		if !isPaasObject(fileName, content) {
+			logrus.Debugf("Skipping file %s: not a Paas object", fileName)
+			continue
+		}
+
+		if err := s.migrateFile(fileName, outputFormat); err != nil {
+			return err
+		}
+	}
+
+	logrus.Info("finished")
+	return nil
+}
+
+// Reencrypt reencrypts the secrets of given PAAS files using the provided private
+// and public keys.
+func (s *ConversionService) Reencrypt(
+	privateKeyFiles string,
+	publicKeyFile string,
+	outputFormat string,
+	files []string,
+) error {
 	var totalErrors int
 
 	for _, fileName := range files {
@@ -277,9 +321,20 @@ func isPaasObject(filePath string, content []byte) bool {
 	return false
 }
 
+// migrateFile handles the file-level version migration logic
+func (s *ConversionService) migrateFile(fileName string, outputFormat string) error {
+	// Read paas from file
+	paas, format, err := paasfile.ReadPaasFile(fileName)
+	if err != nil {
+		return fmt.Errorf("could not read file %s: %s", fileName, err)
+	}
+	return s.fileOps.WriteFormattedFile(paas, fileName, format)
+}
+
 // reencryptFile handles the file-level reencryption logic
-func (s *Service) reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string,
-	outputFormat string) (int, error) {
+func (s *ConversionService) reencryptFile(fileName string, privateKeyFiles string, publicKeyFile string,
+	outputFormat string,
+) (int, error) {
 	// Read paas as bytes to preserve format
 	paasAsBytes, err := s.fileOps.ReadFile(fileName)
 	if err != nil {

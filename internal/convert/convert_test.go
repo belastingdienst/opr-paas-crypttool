@@ -4,7 +4,7 @@ Licensed under the EUPL 1.2.
 See LICENSE.md for details.
 */
 
-package reencrypt
+package convert
 
 import (
 	"testing"
@@ -38,7 +38,8 @@ type MockCryptFactory struct {
 }
 
 func (f *MockCryptFactory) NewCryptFromFiles(privateKeyFiles []string, publicKeyFile string,
-	paasName string) (crypt.Cryptor, error) {
+	paasName string,
+) (crypt.Cryptor, error) {
 	return f.crypt, nil
 }
 
@@ -71,7 +72,7 @@ func TestReencryptPaasData_ReencryptsSecrets(t *testing.T) {
 
 	mockFactory := &MockCryptFactory{crypt: mockCrypt}
 
-	service := NewReencryptServiceWithDeps(nil, mockFactory)
+	service := NewConversionServiceWithDeps(nil, mockFactory)
 
 	// Act
 	result, err := service.ReencryptPaasData(paas, paasAsString, "priv.key", "pub.key")
