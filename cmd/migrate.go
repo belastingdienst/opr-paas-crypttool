@@ -19,8 +19,9 @@ func migrateCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "migrate [command options]",
-		Short: "migrate old Paas version (e.a. v1alpha1) to new (e.a. v1alpha2)",
-		Long:  `parse yaml/json files with any version (e.a. v1alpha1) and migrate to a specific version (e.a. v1alpha2).`,
+		Short: "migrate any Paas version (e.a. v1alpha1) to v1alpha2",
+		Long: `parse yaml/json files with any version (e.a. v1alpha1) and migrate to the latest version ` +
+			`(currently v1alpha2).`,
 		RunE: func(command *cobra.Command, args []string) error {
 			var files []string
 			var err error
@@ -35,8 +36,7 @@ func migrateCmd() *cobra.Command {
 
 			return convert.Migrate(files, outputFormat)
 		},
-		Args: cobra.MinimumNArgs(1),
-		//revive:disable-next-line
+		Args:    cobra.MinimumNArgs(1),
 		Example: `crypttool migrate [file or dir] ([file or dir]...)`,
 	}
 
@@ -45,8 +45,9 @@ func migrateCmd() *cobra.Command {
 		&outputFormat,
 		argNameOutputFormat,
 		"auto",
-		//revive:disable-next-line
-		"The outputformat for writing a Paas, either yaml (machine formatted), json (machine formatted), auto (which will use input format as output, machine formatted) or preserved (which will use the input format and preserve the original syntax including for example comments) ",
+		"The outputformat for writing a Paas, either yaml (machine formatted), json (machine formatted), "+
+			"auto (which will use input format as output, machine formatted) or preserved (which will use the "+
+			"input format and preserve the original syntax including for example comments) ",
 	)
 
 	if err := viper.BindPFlag(argNameOutputFormat, flags.Lookup(argNameOutputFormat)); err != nil {
