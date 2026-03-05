@@ -7,7 +7,7 @@ See LICENSE.md for details.
 package main
 
 import (
-	"github.com/belastingdienst/opr-paas-crypttool/internal/reencrypt"
+	"github.com/belastingdienst/opr-paas-crypttool/internal/convert"
 	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,7 +38,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 				return err
 			}
 
-			return reencrypt.Files(privateKeyFiles, publicKeyFile, outputFormat, files)
+			return convert.Reencrypt(privateKeyFiles, publicKeyFile, outputFormat, files)
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
