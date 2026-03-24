@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: Paas Crypttool
+title: kubectl-paas
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
@@ -27,4 +27,5 @@ keywords:
   - service
   - crypt
   - re-encrypt
+  - kubectl-paas
 license: EUPL-1.2

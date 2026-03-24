@@ -42,7 +42,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
-		Example: `crypttool reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

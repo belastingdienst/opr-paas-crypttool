@@ -32,7 +32,7 @@ func generateCmd() *cobra.Command {
 			}
 			return crypt.GenerateKeyPair(privateKeyFile, publicKeyFile)
 		},
-		Example: `crypttool generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"`,
+		Example: `kubectl-paas generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"`,
 	}
 
 	flags := cmd.Flags()

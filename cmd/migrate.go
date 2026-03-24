@@ -37,7 +37,7 @@ func migrateCmd() *cobra.Command {
 			return convert.Migrate(files, outputFormat)
 		},
 		Args:    cobra.MinimumNArgs(1),
-		Example: `crypttool migrate [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas migrate [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

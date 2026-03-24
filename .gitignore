@@ -29,6 +29,7 @@ go.work*
 *.swo
 *~
 /crypttool*
+/kubectl-paas*
 
 site/
 .cache/

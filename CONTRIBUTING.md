@@ -1,6 +1,6 @@
-# Contributing to the PaaS Crypttool
+# Contributing to kubectl-paas
 
-Welcome! We are glad that you want to contribute to our PaaS Crypttool project! 💖
+Welcome! We are glad that you want to contribute to our kubectl-paas project! 💖
 
 As you get started, you are in the best position to give us feedbacks on areas of
 our project that we need help with, including:

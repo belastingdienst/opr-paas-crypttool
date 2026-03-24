@@ -36,7 +36,7 @@ func encryptCmd() *cobra.Command {
 
 			return crypt.EncryptFile(publicKeyFile, paasName, dataFile)
 		},
-		Example: `crypttool encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`,
+		Example: `kubectl-paas encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`,
 	}
 
 	flags := cmd.Flags()

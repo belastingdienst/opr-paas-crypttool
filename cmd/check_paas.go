@@ -39,7 +39,7 @@ func checkPaasCmd() *cobra.Command {
 			return checkPaasFiles(privateKeyFiles, files)
 		},
 		Args:    cobra.MinimumNArgs(1),
-		Example: `crypttool check-paas --privateKeyFiles "/tmp/priv" [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas check-paas --privateKeyFiles "/tmp/priv" [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

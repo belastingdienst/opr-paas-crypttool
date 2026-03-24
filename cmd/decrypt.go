@@ -31,7 +31,7 @@ func decryptCmd() *cobra.Command {
 			}
 			return crypt.DecryptFromStdin([]string{privateKeyFiles}, paasName)
 		},
-		Example: `crypttool decrypt --privateKeyFiles "/tmp/priv" --paas my-paas`,
+		Example: `kubectl-paas decrypt --privateKeyFiles "/tmp/priv" --paas my-paas`,
 	}
 
 	flags := cmd.Flags()
