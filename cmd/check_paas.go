@@ -9,9 +9,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/belastingdienst/opr-paas-cli/internal/paasfile"
-	"github.com/belastingdienst/opr-paas-cli/internal/utils"
-	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

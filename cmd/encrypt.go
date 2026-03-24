@@ -9,7 +9,7 @@ package main
 import (
 	"errors"
 
-	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
