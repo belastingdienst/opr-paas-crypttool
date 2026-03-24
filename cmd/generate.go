@@ -9,7 +9,7 @@ package main
 import (
 	"errors"
 
-	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,7 +32,7 @@ func generateCmd() *cobra.Command {
 			}
 			return crypt.GenerateKeyPair(privateKeyFile, publicKeyFile)
 		},
-		Example: `crypttool generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"`,
+		Example: `kubectl-paas generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"`,
 	}
 
 	flags := cmd.Flags()

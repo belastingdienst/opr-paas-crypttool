@@ -1,4 +1,4 @@
-# opr-paas-crypttool
+# kubectl-paas
 
 ## Goal
 
@@ -15,7 +15,7 @@ for example as part of a migration process or as part of a regular key rotation 
 
 The most common use case is to re-encrypt secrets in PAAS files using a new key:
 
-`crypttool reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`
+`kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`
 
 ## Contributing
 

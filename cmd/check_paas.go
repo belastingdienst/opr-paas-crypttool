@@ -9,9 +9,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/belastingdienst/opr-paas-crypttool/internal/paasfile"
-	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
-	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/internal/paasfile"
+	"github.com/belastingdienst/opr-paas-cli/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -39,7 +39,7 @@ func checkPaasCmd() *cobra.Command {
 			return checkPaasFiles(privateKeyFiles, files)
 		},
 		Args:    cobra.MinimumNArgs(1),
-		Example: `crypttool check-paas --privateKeyFiles "/tmp/priv" [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas check-paas --privateKeyFiles "/tmp/priv" [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

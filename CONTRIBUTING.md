@@ -1,6 +1,6 @@
-# Contributing to the PaaS Crypttool
+# Contributing to kubectl-paas
 
-Welcome! We are glad that you want to contribute to our PaaS Crypttool project! 💖
+Welcome! We are glad that you want to contribute to our kubectl-paas project! 💖
 
 As you get started, you are in the best position to give us feedbacks on areas of
 our project that we need help with, including:
@@ -36,6 +36,6 @@ section on the documentation site.
 
 ## Raising Issues
 
-When you want to raise an issue, use [GitHub Issues](https://github.com/belastingdienst/opr-paas-crypttool/issues/new/choose).
+When you want to raise an issue, use [GitHub Issues](https://github.com/belastingdienst/opr-paas-cli/issues/new/choose).
 
 If you are trying to report a vulnerability, please make sure to read the [security policy](SECURITY.md).

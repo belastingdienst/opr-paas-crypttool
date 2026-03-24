@@ -9,7 +9,7 @@ package main
 import (
 	"errors"
 
-	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,7 +31,7 @@ func decryptCmd() *cobra.Command {
 			}
 			return crypt.DecryptFromStdin([]string{privateKeyFiles}, paasName)
 		},
-		Example: `crypttool decrypt --privateKeyFiles "/tmp/priv" --paas my-paas`,
+		Example: `kubectl-paas decrypt --privateKeyFiles "/tmp/priv" --paas my-paas`,
 	}
 
 	flags := cmd.Flags()

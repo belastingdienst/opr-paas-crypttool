@@ -8,7 +8,7 @@ date: 2025-03-10
 
 # Branding
 
-The Paas Crypttool, like many open source projects, has a logo. You can find the
+The kubectl-paas tool, like many open source projects, has a logo. You can find the
 source of this logo (.svg format, made with Inkscape) in the `docs/about/branding`
 directory of the Git repository.
 

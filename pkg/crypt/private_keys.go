@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/internal/utils"
 )
 
 // PrivateKeys is an interface for handling multiple private keys (for rotation)

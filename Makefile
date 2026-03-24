@@ -57,7 +57,7 @@ test: fmt vet gotest-coverage ## Run fmt, vet and tests with coverage.
 
 .PHONY: build
 build: ## Build the application.
-	$(GO) build -o $(LOCALBIN)/crypttool ./cmd/...
+	$(GO) build -o $(LOCALBIN)/kubectl-paas ./cmd/...
 
 ##@ Dependencies
 

@@ -1,6 +1,6 @@
 ---
 title: Maintenance
-summary: How to maintain the crypttool.
+summary: How to maintain kubectl-paas.
 authors:
   - devotional-phoenix-97
   - hikarukin

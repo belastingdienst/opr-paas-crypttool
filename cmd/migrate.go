@@ -7,8 +7,8 @@ See LICENSE.md for details.
 package main
 
 import (
-	"github.com/belastingdienst/opr-paas-crypttool/internal/convert"
-	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/internal/convert"
+	"github.com/belastingdienst/opr-paas-cli/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -37,7 +37,7 @@ func migrateCmd() *cobra.Command {
 			return convert.Migrate(files, outputFormat)
 		},
 		Args:    cobra.MinimumNArgs(1),
-		Example: `crypttool migrate [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas migrate [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

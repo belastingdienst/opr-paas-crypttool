@@ -7,8 +7,8 @@ See LICENSE.md for details.
 package main
 
 import (
-	"github.com/belastingdienst/opr-paas-crypttool/internal/convert"
-	"github.com/belastingdienst/opr-paas-crypttool/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/internal/convert"
+	"github.com/belastingdienst/opr-paas-cli/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -42,7 +42,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
-		Example: `crypttool reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()

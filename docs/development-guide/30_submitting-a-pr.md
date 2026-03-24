@@ -16,18 +16,18 @@ date: 2025-03-10
     documentation which contains very good insights and best practices:
     ["Writing Good Pull Requests"](31_writing-good-pull-request.md).
 
-If you have written code for an improvement to Crypttool or a bug fix, please follow
+If you have written code for an improvement to kubectl-paas or a bug fix, please follow
 this procedure to submit a pull request:
 
 1. Create a fork of the project;
 2. Add a comment to the related issue to let us know you're working on it;
 3. Develop your feature or fix on your forked repository;
 4. Once development is finished, create a pull request from your forked project
-   to the crypttool project.
+   to the kubectl-paas project.
    Please make sure the pull request title and message follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 
 One of the maintainers will then proceed with the first review and approve the
-CI workflow to run in the crypttool project. If testing passes,
+CI workflow to run in the kubectl-paas project. If testing passes,
 the pull request will be labeled with `ok-to-merge` and will be ready for
 merge.
 
@@ -35,7 +35,7 @@ Sign your work
 --------------
 
 We use the Developer Certificate of Origin (DCO) as an additional safeguard for
-the crypttool project. This is a well established and widely used mechanism to assure
+the kubectl-paas project. This is a well established and widely used mechanism to assure
 contributors have confirmed their right to license their contribution under the
 project's license.
 

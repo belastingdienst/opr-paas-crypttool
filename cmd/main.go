@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/belastingdienst/opr-paas-crypttool/internal/version"
+	"github.com/belastingdienst/opr-paas-cli/internal/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -57,8 +57,8 @@ func requireSubcommand(cmd *cobra.Command, args []string) error {
 // createApp returns a cobra.Command, and the underlying globalOptions object, to be run or tested.
 func createApp() *cobra.Command {
 	rootCommand := &cobra.Command{
-		Use:              "crypttool",
-		Long:             "Various operations for paas secret encryption",
+		Use:              "kubectl-paas",
+		Long:             "CLI tool for managing Paas resources",
 		RunE:             requireSubcommand,
 		SilenceUsage:     true,
 		SilenceErrors:    true,

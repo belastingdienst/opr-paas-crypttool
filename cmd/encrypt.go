@@ -9,7 +9,7 @@ package main
 import (
 	"errors"
 
-	"github.com/belastingdienst/opr-paas-crypttool/pkg/crypt"
+	"github.com/belastingdienst/opr-paas-cli/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -36,7 +36,7 @@ func encryptCmd() *cobra.Command {
 
 			return crypt.EncryptFile(publicKeyFile, paasName, dataFile)
 		},
-		Example: `crypttool encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`,
+		Example: `kubectl-paas encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`,
 	}
 
 	flags := cmd.Flags()

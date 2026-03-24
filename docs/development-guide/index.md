@@ -1,20 +1,20 @@
 ---
 title: Welcome!
-summary: Introduction to contributing to the Paas crypttool.
+summary: Introduction to contributing to the kubectl-paas tool.
 authors:
   - devotional-phoenix-97
   - hikarukin
 date: 2025-03-10
 ---
 
-Contributing to crypttool source code
-=====================================
+Contributing to kubectl-paas source code
+========================================
 
-If you want to contribute to the source code of the crypttool, this is the right
+If you want to contribute to the source code of kubectl-paas, this is the right
 place. Welcome!
 
 We have a truly open source soul. That's why we welcome new contributors. Our
-goal is to enable you to become the next committer of the crypttool, by having a
+goal is to enable you to become the next committer of kubectl-paas, by having a
 good set of docs that guide you through the development process. Having said this,
 we know that everything can always be improved, so if you think our documentation
 is not up to scratch, please let us know or provide a pull request based on your
@@ -23,7 +23,7 @@ experience.
 Development workflow
 --------------------
 
-The crypttool project follows [trunk-based development](https://trunkbaseddevelopment.com),
+The kubectl-paas project follows [trunk-based development](https://trunkbaseddevelopment.com),
 with the `main` branch representing the trunk.
 
 We adopt the ["Github Flow"](https://guides.github.com/introduction/flow/)
@@ -51,10 +51,10 @@ TODO:
 
 -->
 
-Your development environment for crypttool
-------------------------------------------
+Your development environment for kubectl-paas
+---------------------------------------------
 
-In order to write even the simplest patch for crypttool you must have setup your
+In order to write even the simplest patch for kubectl-paas you must have setup your
 workstation to build and locally test the version of the operator you are developing.
 
 Submit a pull request
@@ -68,19 +68,19 @@ Submit a pull request
 the Istio documentation which contains very good insights and best practices:
 ["Writing Good Pull Requests"](https://github.com/istio/istio/wiki/Writing-Good-Pull-Requests).
 
-If you have written code for an improvement to the crypttool or a bug fix,
+If you have written code for an improvement to kubectl-paas or a bug fix,
 please follow this procedure to submit a pull request:
 
 1. Create a personal fork of the project;
 2. If there is a related issue, please leave a comment that you intend to work on it;
 4. Once development is finished, create a pull request from your forked project
-   to the crypttool project;
+   to the kubectl-paas project;
 
 Please make sure the pull request title and message follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 For more details on submitting a PR, see "[Submitting A PR](30_submitting-a-pr.md)".
 
 One of the maintainers will then proceed with the first review and approve the
-CI workflow to run in the crypttool project.  The second reviewer will run
+CI workflow to run in the kubectl-paas project.  The second reviewer will run
 end-to-end test against the changes in fork pull request. If testing passes,
 the pull request will be labeled with `ok-to-merge` and will be ready for
 merge.
