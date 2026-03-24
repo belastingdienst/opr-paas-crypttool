@@ -9,7 +9,7 @@ package paasfile
 import (
 	"testing"
 
-	"github.com/belastingdienst/opr-paas-cli/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/belastingdienst/opr-paas/v5/pkg/quota"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

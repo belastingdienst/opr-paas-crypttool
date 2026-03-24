@@ -18,7 +18,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/belastingdienst/opr-paas-cli/internal/utils"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 )
 
 // Cryptor allows you to de- and encrypt data easily for use in a Paas

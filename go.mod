@@ -1,4 +1,4 @@
-module github.com/belastingdienst/opr-paas-cli
+module github.com/belastingdienst/opr-paas-cli/v2
 
 go 1.25.0
 

@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/belastingdienst/opr-paas-cli/internal/stubs/opr-paas/v1alpha1"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/stubs/opr-paas/v1alpha1"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
