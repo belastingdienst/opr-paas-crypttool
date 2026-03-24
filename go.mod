@@ -1,4 +1,4 @@
-module github.com/belastingdienst/opr-paas-crypttool
+module github.com/belastingdienst/opr-paas-cli
 
 go 1.25.0
 

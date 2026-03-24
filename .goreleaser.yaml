@@ -32,7 +32,7 @@ builds:
     main: ./cmd
     binary: kubectl-paas
     ldflags:
-      - -s -w -X "github.com/belastingdienst/opr-paas-crypttool/internal/version.Version={{.Version}}"
+      - -s -w -X "github.com/belastingdienst/opr-paas-cli/internal/version.Version={{.Version}}"
 
 archives:
   - format: tar.gz

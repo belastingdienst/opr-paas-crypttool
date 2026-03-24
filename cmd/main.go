@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/belastingdienst/opr-paas-crypttool/internal/version"
+	"github.com/belastingdienst/opr-paas-cli/internal/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

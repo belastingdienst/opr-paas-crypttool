@@ -7,8 +7,8 @@ type: software
 authors:
   - name: Tax Administration of The Netherlands
     website: 'https://www.belastingdienst.nl'
-repository-code: 'https://github.com/orgs/belastingdienst/opr-paas-crypttool/'
-url: 'https://github.com/orgs/belastingdienst/opr-paas-crypttool/'
+repository-code: 'https://github.com/orgs/belastingdienst/opr-paas-cli/'
+url: 'https://github.com/orgs/belastingdienst/opr-paas-cli/'
 abstract: >-
   The goal is to provide a tool that can be used by operators to encrypt and
   decrypt secrets in their PAAS files using public keys provided by the operator.

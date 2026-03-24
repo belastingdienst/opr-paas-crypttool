@@ -1,10 +1,10 @@
 site_name: kubectl-paas
-site_url: https://belastingdienst.github.io/opr-paas-crypttool/
+site_url: https://belastingdienst.github.io/opr-paas-cli/
 site_author: Dutch Tax Office
 
 # Repository
-repo_name: opr-paas-crypttool
-repo_url: https://github.com/belastingdienst/opr-paas-crypttool
+repo_name: opr-paas-cli
+repo_url: https://github.com/belastingdienst/opr-paas-cli
 edit_uri: edit/main/docs
 
 theme:

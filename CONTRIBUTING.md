@@ -36,6 +36,6 @@ section on the documentation site.
 
 ## Raising Issues
 
-When you want to raise an issue, use [GitHub Issues](https://github.com/belastingdienst/opr-paas-crypttool/issues/new/choose).
+When you want to raise an issue, use [GitHub Issues](https://github.com/belastingdienst/opr-paas-cli/issues/new/choose).
 
 If you are trying to report a vulnerability, please make sure to read the [security policy](SECURITY.md).
