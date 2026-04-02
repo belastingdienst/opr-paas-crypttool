@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // PathToFileList returns a list of absolute paths to regular files within the given directories.
@@ -46,10 +45,7 @@ func PathToFileList(paths []string) ([]string, error) {
 				return nil
 			}
 
-			ext := strings.ToLower(filepath.Ext(absPath))
-			if ext == ".yaml" || ext == ".yml" || ext == ".json" {
-				files[absPath] = true
-			}
+			files[absPath] = true
 
 			return nil
 		})
