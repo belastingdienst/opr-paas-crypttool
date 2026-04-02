@@ -7,10 +7,8 @@ See LICENSE.md for details.
 package convert
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
@@ -291,19 +289,9 @@ func (s *ConversionService) Reencrypt(
 }
 
 func isPaasObject(filePath string, content []byte) bool {
-	ext := strings.ToLower(filepath.Ext(filePath))
-
 	var data map[string]interface{}
-	var err error
 
-	switch ext {
-	case ".json":
-		err = json.Unmarshal(content, &data)
-	case ".yaml", ".yml":
-		err = yaml.Unmarshal(content, &data)
-	default:
-		return false
-	}
+	err := yaml.Unmarshal(content, &data)
 
 	if err != nil {
 		logrus.Debugf("Failed to parse %s: %v", filePath, err)
