@@ -38,8 +38,13 @@ func TestReadPaasFile(t *testing.T) {
 		Status: v1alpha2.PaasStatus{},
 	}
 
+	var readPaasFile = func(path string) (*v1alpha2.Paas, Format, error) {
+		file := File{Path: path}
+		paas, err := file.GetPaas()
+		return paas, file.Format, err
+	}
 	// invalid path
-	paas, typeString, err := ReadPaasFile("invalid/path")
+	paas, fileType, err := readPaasFile("invalid/path")
 	expectedErrorMsg := "open invalid/path: no such file or directory"
 	assert.EqualErrorf(
 		t,
@@ -50,14 +55,14 @@ func TestReadPaasFile(t *testing.T) {
 		err,
 	) //nolint:testifylint // just no
 	assert.Nil(t, paas)
-	assert.Equal(t, FiletypeUnknown, typeString)
+	assert.Equal(t, UnknownFormat, fileType)
 
 	// empty yaml file
-	paas, typeString, err = ReadPaasFile("testdata/emptyPaas.yml")
+	paas, fileType, err = readPaasFile("testdata/emptyPaas.yml")
 	expectedErrorMsg = "empty paas file"
 	require.Error(t, err)
 	assert.Nil(t, paas)
-	assert.Empty(t, typeString)
+	assert.Empty(t, fileType)
 	assert.EqualErrorf(
 		t,
 		err,
@@ -68,11 +73,11 @@ func TestReadPaasFile(t *testing.T) {
 	) //nolint:testifylint
 
 	// empty json file
-	paas, typeString, err = ReadPaasFile("testdata/emptyPaas.json")
+	paas, fileType, err = readPaasFile("testdata/emptyPaas.json")
 	expectedErrorMsg = "empty paas file"
 	require.Error(t, err)
 	assert.Nil(t, paas)
-	assert.Empty(t, typeString)
+	assert.Empty(t, fileType)
 	assert.EqualErrorf(
 		t,
 		err,
@@ -83,30 +88,30 @@ func TestReadPaasFile(t *testing.T) {
 	) //nolint:testifylint
 
 	// minimal yaml file
-	paas, typeString, err = ReadPaasFile("testdata/minimalPaas.yml")
+	paas, fileType, err = readPaasFile("testdata/minimalPaas.yml")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, FiletypeYAML, typeString)
-	assert.NotEqual(t, FiletypeJSON, typeString)
+	assert.Equal(t, YAMLFormat, fileType)
+	assert.NotEqual(t, JSONFormat, fileType)
 
 	// minimal json file
-	paas, typeString, err = ReadPaasFile("testdata/minimalPaas.json")
+	paas, fileType, err = readPaasFile("testdata/minimalPaas.json")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, FiletypeJSON, typeString)
-	assert.NotEqual(t, FiletypeYAML, typeString)
+	assert.Equal(t, JSONFormat, fileType)
+	assert.NotEqual(t, YAMLFormat, fileType)
 
 	// unsupported field in yaml file
-	paas, typeString, err = ReadPaasFile("testdata/unsupportedFieldsPaas.yml")
+	paas, fileType, err = readPaasFile("testdata/unsupportedFieldsPaas.yml")
 	require.NoError(t, err)
 	assert.Equal(t, expectedPaas, paas)
-	assert.Equal(t, FiletypeYAML, typeString)
-	assert.NotEqual(t, FiletypeJSON, typeString)
+	assert.Equal(t, YAMLFormat, fileType)
+	assert.NotEqual(t, JSONFormat, fileType)
 
 	// invalid file format
-	paas, typeString, err = ReadPaasFile("testdata/invalidFormat.toml")
+	paas, fileType, err = readPaasFile("testdata/invalidFormat.toml")
 	assert.Nil(t, paas)
-	assert.Empty(t, typeString)
+	assert.Empty(t, fileType)
 	assert.EqualErrorf(
 		t,
 		err,

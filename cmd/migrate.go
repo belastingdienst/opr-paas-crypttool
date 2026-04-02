@@ -7,7 +7,8 @@ See LICENSE.md for details.
 package main
 
 import (
-	"github.com/belastingdienst/opr-paas-cli/v2/internal/convert"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/migrate"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -33,8 +34,11 @@ func migrateCmd() *cobra.Command {
 			if files, err = utils.PathToFileList(args); err != nil {
 				return err
 			}
-
-			return convert.Migrate(files, outputFormat)
+			f, err := paasfile.FormatFromString(outputFormat)
+			if err != nil {
+				return err
+			}
+			return migrate.Migrate(files, f)
 		},
 		Args:    cobra.MinimumNArgs(1),
 		Example: `kubectl-paas migrate [file or dir] ([file or dir]...)`,

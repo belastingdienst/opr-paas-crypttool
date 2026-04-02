@@ -36,8 +36,8 @@ override:
   # (default is 80, as configured above in this example).
   #- path: ^pkg/lib/foo$
   #  threshold: 100
-  - path: ^internal/convert$
-    threshold: 18
+  - path: ^internal/reencrypt$
+    threshold: 22
   - path: ^internal/stubs
     threshold: 0
 

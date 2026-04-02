@@ -7,7 +7,8 @@ See LICENSE.md for details.
 package main
 
 import (
-	"github.com/belastingdienst/opr-paas-cli/v2/internal/convert"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/reencrypt"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ import (
 )
 
 func reencryptCmd() *cobra.Command {
-	var privateKeyFiles string
+	var privateKeyFileGlob string
 	var publicKeyFile string
 	var outputFormat string
 
@@ -38,7 +39,21 @@ reencrypt with the new public key and write the Paas back to the file in either 
 				return err
 			}
 
-			return convert.Reencrypt(privateKeyFiles, publicKeyFile, outputFormat, files)
+			privateKeyFiles, err := utils.PathToFileList([]string{privateKeyFileGlob})
+			if err != nil {
+				return err
+			}
+			conversionService := reencrypt.ConversionService{
+				Factory: &reencrypt.FileCryptFactory{
+					PrivateKeyFiles: privateKeyFiles,
+					PublicKeyFile:   publicKeyFile,
+				},
+			}
+			f, err := paasfile.FormatFromString(outputFormat)
+			if err != nil {
+				return err
+			}
+			return conversionService.Reencrypt(f, files)
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
@@ -46,7 +61,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&privateKeyFiles, "privateKeyFiles", "", "The file to read the private key from")
+	flags.StringVar(&privateKeyFileGlob, "privateKeyFiles", "", "The file to read the private key from")
 	flags.StringVar(&publicKeyFile, "publicKeyFile", "", "The file to read the public key from")
 	flags.StringVar(
 		&outputFormat,

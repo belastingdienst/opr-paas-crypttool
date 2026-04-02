@@ -12,7 +12,6 @@ import (
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
-	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -65,21 +64,18 @@ func checkPaasCmd() *cobra.Command {
 // returns the accumulated number of errors.
 func checkPaasFiles(privateKeyFiles string, files []string) error {
 	var errNum int
-	var paas *v1alpha2.Paas
 
 	for _, fileName := range files {
-		version, err := paasfile.ApiVersion(fileName)
+		file := paasfile.File{Path: fileName}
+		header, err := file.GetHeader()
 		if err != nil {
-			return fmt.Errorf("unsupported Paas API version: %s", version)
+			return fmt.Errorf("unsupported file format: %e", err)
+		}
+		if err := header.Verify(); err != nil {
+			return err
 		}
 
-		// Read paas from file
-		if version == "cpet.belastingdienst.nl/v1alpha1" {
-			paas, _, err = paasfile.ReadV1PaasFile(fileName)
-		} else {
-			paas, _, err = paasfile.ReadPaasFile(fileName)
-		}
-
+		paas, err := file.GetPaas()
 		if err != nil {
 			return fmt.Errorf("could not read file %s: %s", fileName, err.Error())
 		}
