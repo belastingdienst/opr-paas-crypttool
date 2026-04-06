@@ -37,7 +37,7 @@ override:
   #- path: ^pkg/lib/foo$
   #  threshold: 100
   - path: ^internal/reencrypt$
-    threshold: 22
+    threshold: 28
   - path: ^internal/stubs
     threshold: 0
 

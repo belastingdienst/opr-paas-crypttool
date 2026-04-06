@@ -87,6 +87,9 @@ func (f *File) GetHeader() (header *Header, err error) {
 // GetPaas parses content using multiple conversion functions and
 // returns v1alpha2.Paas or a list of errors
 func (f *File) GetPaas() (paas *v1alpha2.Paas, err error) {
+	if f.paas != nil {
+		return f.paas, nil
+	}
 	_, err = f.GetHeader()
 	if err != nil {
 		return nil, err
@@ -110,9 +113,9 @@ func (f *File) SetPaas(paas v1alpha2.Paas) {
 	f.paas = &paas
 	content, err := f.getContentFromPaas(AutoFormat)
 	if err != nil {
-		f.content = content
-	} else {
 		f.content = nil
+	} else {
+		f.content = content
 	}
 }
 

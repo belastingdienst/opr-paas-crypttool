@@ -24,42 +24,55 @@ var _ = Describe("Reencrypt", Ordered, func() {
 	const (
 		paasName   = "my-paas"
 		secretName = "my-secret"
+		capName    = "my-cap"
 	)
 	var (
-		tmpDir       string
-		paasFilePath string
-		myCrypt      *crypt.Crypt
-		service      ConversionService
-		secretValue  = []byte("my-secret-value")
-		encrypted    string
-		v2Paas       v1alpha2.Paas
-		v2PaasBody   []byte
+		tmpDir           string
+		paasFilePath     string
+		myDecrypter      *crypt.Crypt
+		reencryptService ConversionService
+		secretValue      = []byte("my-secret-value")
+		encrypted        string
+		v2Paas           v1alpha2.Paas
+		v2PaasBody       []byte
 	)
 	BeforeAll(func() {
-		var err error
+		var (
+			err         error
+			myEncrypter *crypt.Crypt
+		)
+
 		tmpDir, err = os.MkdirTemp("", "migrate")
 		Ω(err).Error().NotTo(HaveOccurred())
 
-		privKeyPath1 := path.Join(tmpDir, "private1")
-		pubKeyPath1 := path.Join(tmpDir, "public1")
-		err = crypt.GenerateKeyPair(privKeyPath1, pubKeyPath1)
+		// First round (generate encrypted secrets)
+		encryptPrivKeyPath := path.Join(tmpDir, "private1")
+		encryptPublicKeyPath := path.Join(tmpDir, "public1")
+		err = crypt.GenerateKeyPair(encryptPrivKeyPath, encryptPublicKeyPath)
 		Ω(err).Error().NotTo(HaveOccurred())
 
-		privKeyPath2 := path.Join(tmpDir, "private2")
-		pubKeyPath2 := path.Join(tmpDir, "public2")
-		err = crypt.GenerateKeyPair(privKeyPath2, pubKeyPath2)
+		encryptPrivKey, err := crypt.NewPrivateKeysFromFiles([]string{encryptPrivKeyPath})
+		Ω(err).Error().NotTo(HaveOccurred())
+		myEncrypter, err = crypt.NewCryptFromKeys(encryptPrivKey, encryptPublicKeyPath, paasName)
 		Ω(err).Error().NotTo(HaveOccurred())
 
-		service = ConversionService{
+		// Second round (reencrypt secrets)
+		reencryptedPrivKeyPath := path.Join(tmpDir, "private2")
+		reencryptedPublicKeyPath := path.Join(tmpDir, "public2")
+		err = crypt.GenerateKeyPair(reencryptedPrivKeyPath, reencryptedPublicKeyPath)
+		Ω(err).Error().NotTo(HaveOccurred())
+
+		reencryptService = ConversionService{
 			Factory: &FileCryptFactory{
-				PrivateKeyFiles: []string{privKeyPath1, privKeyPath2},
-				PublicKeyFile:   pubKeyPath2,
+				PrivateKeyFiles: []string{encryptPrivKeyPath, reencryptedPrivKeyPath},
+				PublicKeyFile:   reencryptedPublicKeyPath,
 			},
 		}
 
-		privKeys, err := crypt.NewPrivateKeysFromFiles([]string{privKeyPath1})
+		// Third round (decrypt reencrypted secrets)
+		reencryptedPrivateKey, err := crypt.NewPrivateKeysFromFiles([]string{reencryptedPrivKeyPath})
 		Ω(err).Error().NotTo(HaveOccurred())
-		myCrypt, err = crypt.NewCryptFromKeys(privKeys, pubKeyPath1, paasName)
+		myDecrypter, err = crypt.NewCryptFromKeys(reencryptedPrivateKey, reencryptedPublicKeyPath, paasName)
 		Ω(err).Error().NotTo(HaveOccurred())
 
 		paasFilesPath := path.Join(tmpDir, "paas")
@@ -67,7 +80,7 @@ var _ = Describe("Reencrypt", Ordered, func() {
 		Ω(err).Error().NotTo(HaveOccurred())
 		paasFilePath = path.Join(paasFilesPath, "v2.paas")
 
-		encrypted, err = myCrypt.Encrypt(secretValue)
+		encrypted, err = myEncrypter.Encrypt(secretValue)
 		Ω(err).Error().NotTo(HaveOccurred())
 	})
 
@@ -89,6 +102,13 @@ var _ = Describe("Reencrypt", Ordered, func() {
 				Secrets: map[string]string{
 					secretName: encrypted,
 				},
+				Capabilities: v1alpha2.PaasCapabilities{
+					capName: v1alpha2.PaasCapability{
+						Secrets: map[string]string{
+							secretName: encrypted,
+						},
+					},
+				},
 			},
 		}
 		v2PaasBody, err = yaml.Marshal(v2Paas)
@@ -103,32 +123,45 @@ var _ = Describe("Reencrypt", Ordered, func() {
 		Ω(err).Error().NotTo(HaveOccurred())
 	})
 
-	// 27-30 32-37 39-40 47-60 65-75 77-79 81 86-93 96-102 105-106 109-112 117-163 165-182 185-204
-	When("Reencrypting", func() {
+	// 30 33-37 39-40 47-60 66-75 78-79 86-93 96-102 105-106 110-112 117-163 165-182 185-204
+	When("Reencrypting", Ordered, func() {
 		It("should succeed", func() {
-			err := service.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
+			err := reencryptService.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
 			Ω(err).Error().NotTo(HaveOccurred())
+			pf := paasfile.File{Path: paasFilePath}
+			paas, err := pf.GetPaas()
+			Ω(err).Error().NotTo(HaveOccurred())
+			Ω(paas.Spec.Capabilities).To(HaveLen(1))
+			Ω(paas.Spec.Capabilities).To(HaveKey(capName))
+			for _, secrets := range []map[string]string{
+				paas.Spec.Secrets,
+				paas.Spec.Capabilities[capName].Secrets,
+			} {
+				Ω(secrets).To(HaveLen(1))
+				Ω(secrets).To(HaveKey(secretName))
+				encrypted := secrets[secretName]
+				decrypted, err := myDecrypter.Decrypt(encrypted)
+				Ω(err).Error().NotTo(HaveOccurred())
+				Ω(decrypted).To(Equal(secretValue))
+			}
+			Ω(paas.Spec.Capabilities[capName].Secrets[secretName]).NotTo(Equal(paas.Spec.Secrets[secretName]))
 		})
 	})
 	When("Reencrypting with another key", func() {
 		It("should not succeed", func() {
 			var err error
-			privKeyPath := path.Join(tmpDir, "private1")
-			pubKeyPath := path.Join(tmpDir, "public1")
+			privKeyPath := path.Join(tmpDir, "private3")
+			pubKeyPath := path.Join(tmpDir, "public3")
 			err = crypt.GenerateKeyPair(privKeyPath, pubKeyPath)
 			Ω(err).Error().NotTo(HaveOccurred())
 
-			encrypted2, err := myCrypt.Encrypt(secretValue)
-			Ω(err).Error().NotTo(HaveOccurred())
-			v2Paas.Spec.Secrets[secretName] = encrypted2
-
-			body, err := yaml.Marshal(v2Paas)
-			Ω(err).Error().NotTo(HaveOccurred())
-			f, err := os.Create(paasFilePath)
-			Ω(err).Error().NotTo(HaveOccurred())
-			_, err = f.Write(body)
-			Ω(err).Error().NotTo(HaveOccurred())
-			err = service.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
+			reencryptService = ConversionService{
+				Factory: &FileCryptFactory{
+					PrivateKeyFiles: []string{privKeyPath},
+					PublicKeyFile:   pubKeyPath,
+				},
+			}
+			err = reencryptService.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
 			Ω(err).Error().To(HaveOccurred())
 		})
 	})
