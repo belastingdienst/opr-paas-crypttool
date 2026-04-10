@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/reencrypt"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/sirupsen/logrus"
@@ -28,14 +29,14 @@ func reencryptCmd() *cobra.Command {
 reencrypt with the new public key and write the Paas back to the file in either yaml or json format.`,
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
-			var files []string
+			var files paasobject.Objects
 			var err error
 
 			if debug {
 				logrus.SetLevel(logrus.DebugLevel)
 			}
 
-			if files, err = utils.PathToFileList(args); err != nil {
+			if files, err = paasfile.FilesFromPaths(args, outputFormat); err != nil {
 				return err
 			}
 
@@ -49,11 +50,12 @@ reencrypt with the new public key and write the Paas back to the file in either 
 					PublicKeyFile:   publicKeyFile,
 				},
 			}
-			f, err := paasfile.FormatFromString(outputFormat)
+
+			err = conversionService.ReencryptObjects(files)
 			if err != nil {
 				return err
 			}
-			return conversionService.Reencrypt(f, files)
+			return files.Write()
 		},
 		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
@@ -67,8 +69,9 @@ reencrypt with the new public key and write the Paas back to the file in either 
 		&outputFormat,
 		argNameOutputFormat,
 		"auto",
-		//revive:disable-next-line
-		"The outputformat for writing a Paas, either yaml (machine formatted), json (machine formatted), auto (which will use input format as output, machine formatted) or preserved (which will use the input format and preserve the original syntax including for example comments) ",
+		"The outputformat for writing a Paas, either yaml (machine formatted), json (machine formatted), "+
+			"auto (which will use input format as output, machine formatted) or preserved (which will use the input "+
+			"format and preserve the original syntax including for example comments) ",
 	)
 
 	if err := viper.BindPFlag(argNamePrivateKeyFiles, flags.Lookup(argNamePrivateKeyFiles)); err != nil {

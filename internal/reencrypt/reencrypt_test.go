@@ -126,8 +126,13 @@ var _ = Describe("Reencrypt", Ordered, func() {
 	// 30 33-37 39-40 47-60 66-75 78-79 86-93 96-102 105-106 110-112 117-163 165-182 185-204
 	When("Reencrypting", Ordered, func() {
 		It("should succeed", func() {
-			err := reencryptService.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
+			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
+			err = reencryptService.ReencryptObjects(files)
+			Ω(err).Error().NotTo(HaveOccurred())
+			err = files.Write()
+			Ω(err).Error().NotTo(HaveOccurred())
+
 			pf := paasfile.File{Path: paasFilePath}
 			paas, err := pf.GetPaas()
 			Ω(err).Error().NotTo(HaveOccurred())
@@ -155,13 +160,15 @@ var _ = Describe("Reencrypt", Ordered, func() {
 			err = crypt.GenerateKeyPair(privKeyPath, pubKeyPath)
 			Ω(err).Error().NotTo(HaveOccurred())
 
-			reencryptService = ConversionService{
+			otherService := ConversionService{
 				Factory: &FileCryptFactory{
 					PrivateKeyFiles: []string{privKeyPath},
 					PublicKeyFile:   pubKeyPath,
 				},
 			}
-			err = reencryptService.Reencrypt(paasfile.AutoFormat, []string{paasFilePath})
+			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
+			Ω(err).Error().NotTo(HaveOccurred())
+			err = otherService.ReencryptObjects(files)
 			Ω(err).Error().To(HaveOccurred())
 		})
 	})
