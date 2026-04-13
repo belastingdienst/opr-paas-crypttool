@@ -7,12 +7,15 @@ See LICENSE.md for details.
 package paasfile
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/stubs/opr-paas/v1alpha1"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
@@ -31,15 +34,34 @@ func (ip *InvalidPaasFileFormat) Error() string {
 
 // File represents a file with a Paas resource definition
 type File struct {
-	Path    string
-	Format  Format
-	header  *Header
-	content []byte
-	paas    *v1alpha2.Paas
+	Path         string
+	InputFormat  Format
+	OutputFormat Format
+	header       *Header
+	content      []byte
+	paas         *v1alpha2.Paas
 }
 
-// GetContent reads a file and returns its content.
-func (f *File) GetContent() (content []byte, err error) {
+// FilesFromPaths can be used to collect files from one or more paths
+func FilesFromPaths(paths []string, outputFormat string) (paasobject.Objects, error) {
+	f, err := FormatFromString(outputFormat)
+	if err != nil {
+		return nil, err
+	}
+	filePaths, err := utils.PathToFileList(paths)
+	if err != nil {
+		return nil, err
+	}
+	var files = paasobject.Objects{}
+
+	for _, filePath := range filePaths {
+		files = append(files, &File{Path: filePath, OutputFormat: f})
+	}
+	return files, nil
+}
+
+// getContent reads a file and returns its content.
+func (f *File) getContent() (content []byte, err error) {
 	if f.content != nil {
 		return f.content, nil
 	}
@@ -60,18 +82,12 @@ func (f *File) GetContent() (content []byte, err error) {
 	return content, nil
 }
 
-// SetContent sets the internal content value, and resets the Paas pointer
-func (f *File) SetContent(content []byte) {
-	f.content = content
-	f.paas = nil
-}
-
 // GetHeader returns the k8s header of a Kubernetes resource from a file.
 func (f *File) GetHeader() (header *Header, err error) {
 	if f.header != nil {
 		return f.header, nil
 	}
-	content, err := f.GetContent()
+	content, err := f.getContent()
 	if err != nil {
 		return nil, err
 	}
@@ -108,15 +124,64 @@ func (f *File) GetPaas() (paas *v1alpha2.Paas, err error) {
 	return nil, fmt.Errorf("failed to parse file:\n%w", errors.Join(errs...))
 }
 
-// SetPaas sets the Paas pointer, and additionally sets the Contents value
-func (f *File) SetPaas(paas v1alpha2.Paas) {
-	f.paas = &paas
-	content, err := f.getContentFromPaas(AutoFormat)
-	if err != nil {
-		f.content = nil
-	} else {
-		f.content = content
+func paasSecretDiff(oldPaas, newPaas v1alpha2.Paas) (map[string]string, error) {
+	var secretDiff = map[string]string{}
+	if len(oldPaas.Spec.Capabilities) != len(newPaas.Spec.Capabilities) {
+		return nil, errors.New("oldPaas has less or more capabilities than new Paas")
 	}
+	type mapper struct {
+		oldSecrets map[string]string
+		newSecrets map[string]string
+	}
+	var secretMappers = []mapper{
+		{oldSecrets: oldPaas.Spec.Secrets, newSecrets: newPaas.Spec.Secrets},
+	}
+	for capName, oldCap := range oldPaas.Spec.Capabilities {
+		newCap, exists := newPaas.Spec.Capabilities[capName]
+		if !exists {
+			if len(oldCap.Secrets) == 0 {
+				continue
+			}
+			return nil, errors.New("oldPaas has capability which does not exist for new paas")
+		}
+		if len(oldCap.Secrets) != len(newCap.Secrets) {
+			return nil, errors.New("oldPaas has capability with less or more secrets than new paas")
+		}
+		secretMappers = append(secretMappers, mapper{oldSecrets: oldCap.Secrets, newSecrets: newCap.Secrets})
+	}
+	if len(secretMappers) == 0 {
+		return nil, nil
+	}
+	for _, m := range secretMappers {
+		for secretName, oldValue := range m.oldSecrets {
+			newValue, exists := m.newSecrets[secretName]
+			if !exists {
+				return nil, errors.New("oldPaas has capability with secret which does not exist for new paas")
+			}
+			secretDiff[oldValue] = newValue
+		}
+	}
+	return secretDiff, nil
+}
+
+// SetPaas sets the Paas pointer, and additionally sets the Contents value
+func (f *File) SetPaas(newPaas v1alpha2.Paas) error {
+	oldPaas, err := f.GetPaas()
+	if err != nil {
+		return err
+	}
+	m, err := paasSecretDiff(*oldPaas, newPaas)
+	if err != nil {
+		return err
+	}
+	if len(m) == 0 {
+		return nil
+	}
+	for oldSecret, newSecret := range m {
+		f.content = bytes.ReplaceAll(f.content, []byte(oldSecret), []byte(newSecret))
+	}
+	f.paas = &newPaas
+	return nil
 }
 
 // ReadPaasFile reads a PaaS file and returns the parsed Paas object.
@@ -141,7 +206,7 @@ func (f *File) readPaasv2File() (*v1alpha2.Paas, error) {
 
 	// It's a v1alpha2, continue
 	var content []byte
-	content, err = f.GetContent()
+	content, err = f.getContent()
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +215,7 @@ func (f *File) readPaasv2File() (*v1alpha2.Paas, error) {
 	var paas v1alpha2.Paas
 	err = json.Unmarshal(content, &paas)
 	if err == nil {
-		f.Format = JSONFormat
+		f.InputFormat = JSONFormat
 		f.paas = &paas
 		return &paas, nil
 	}
@@ -159,7 +224,7 @@ func (f *File) readPaasv2File() (*v1alpha2.Paas, error) {
 	// Is it a YAML?
 	err = yaml.Unmarshal(content, &paas)
 	if err == nil {
-		f.Format = YAMLFormat
+		f.InputFormat = YAMLFormat
 		f.paas = &paas
 		return &paas, nil
 	}
@@ -191,7 +256,7 @@ func (f *File) readPaasv1File() (*v1alpha2.Paas, error) {
 
 	// It's a v1alpha2, continue
 	var content []byte
-	content, err = f.GetContent()
+	content, err = f.getContent()
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +276,7 @@ func (f *File) readPaasv1File() (*v1alpha2.Paas, error) {
 	// Is it a JSON?
 	err = json.Unmarshal(content, &paas)
 	if err == nil {
-		f.Format = JSONFormat
+		f.InputFormat = JSONFormat
 		f.paas = convertFromV1alpha1(paas)
 		return f.paas, nil
 	}
@@ -220,7 +285,7 @@ func (f *File) readPaasv1File() (*v1alpha2.Paas, error) {
 	// Is it a YAML?
 	err = yaml.Unmarshal(content, &paas)
 	if err == nil {
-		f.Format = YAMLFormat
+		f.InputFormat = YAMLFormat
 		f.paas = convertFromV1alpha1(paas)
 		return f.paas, nil
 	}
@@ -245,7 +310,7 @@ func writeContent(path string, content []byte) error {
 
 // WriteContent writes the given file to disk.
 func (f File) WriteContent(path string) error {
-	content, err := f.GetContent()
+	content, err := f.getContent()
 	if err != nil {
 		return err
 	}
@@ -255,15 +320,14 @@ func (f File) WriteContent(path string) error {
 	return writeContent(path, content)
 }
 
-func (f File) getContentFromPaas(format Format) ([]byte, error) {
-	if format == AutoFormat {
-		format = f.Format
+func getContentFromPaas(paas v1alpha2.Paas, format Format) ([]byte, error) {
+	if format == AutoFormat || format == UnknownFormat {
+		format = YAMLFormat
 	}
-	paas, err := f.GetPaas()
-	if err != nil {
-		return nil, err
-	}
-	var buffer []byte
+	var (
+		buffer []byte
+		err    error
+	)
 	switch format {
 	case JSONFormat:
 		buffer, err = json.Marshal(paas)
@@ -283,13 +347,21 @@ func (f File) getContentFromPaas(format Format) ([]byte, error) {
 }
 
 // Write writes the given paas to disk in a format that can be read by the parser.
-func (f File) Write(path string, format Format) error {
-	if path == "" {
-		path = f.Path
+func (f File) Write() error {
+	if f.OutputFormat == PreserveFormat {
+		content, err := f.getContent()
+		if err != nil {
+			return err
+		}
+		return writeContent(f.Path, content)
 	}
-	buffer, err := f.getContentFromPaas(format)
+	paas, err := f.GetPaas()
 	if err != nil {
 		return err
 	}
-	return writeContent(path, buffer)
+	content, err := getContentFromPaas(*paas, f.OutputFormat)
+	if err != nil {
+		return err
+	}
+	return writeContent(f.Path, content)
 }

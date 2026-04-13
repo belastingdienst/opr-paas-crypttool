@@ -82,7 +82,7 @@ var _ = Describe("Migrate", Ordered, func() {
 		It("should succeed", func() {
 			for _, filePath := range allFiles {
 				fmt.Fprintf(GinkgoWriter, "DEBUG - migrating: %s\n", filePath)
-				err := migrateFile(paasfile.File{Path: filePath}, paasfile.AutoFormat)
+				err := migrateFile(paasfile.File{Path: filePath})
 				Ω(err).Error().NotTo(HaveOccurred())
 			}
 		})
@@ -117,7 +117,7 @@ kind = Paas
 				Ω(err).Error().NotTo(HaveOccurred())
 				_, err = f.Write([]byte(contents))
 				Ω(err).Error().NotTo(HaveOccurred())
-				err = migrateFile(paasfile.File{Path: filePath}, paasfile.AutoFormat)
+				err = migrateFile(paasfile.File{Path: filePath})
 				Ω(err).Error().To(HaveOccurred())
 			}
 		})
