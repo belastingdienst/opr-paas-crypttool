@@ -3,27 +3,23 @@ package reencrypt
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
 	"github.com/sirupsen/logrus"
 )
 
-// Reencrypt reencrypts the secrets of given PAAS files using the provided private
-// and public keys.
-func (s *ConversionService) Reencrypt(
-	outputFormat paasfile.Format,
-	files []string,
+// ReencryptObjects can process a list of PaasObject types, for each retrieving a Paas from a PaasObject interface
+// datatype, reencrypt it, and writing it back.
+func (s *ConversionService) ReencryptObjects(
+	files []paasobject.Object,
 ) error {
 	var errs []error
 
-	for _, fileName := range files {
-		file := paasfile.File{Path: fileName}
-
-		err := s.reencryptPaasFile(file, outputFormat)
+	for _, file := range files {
+		err := s.reencryptPaasObject(file)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -113,91 +109,13 @@ func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 }
 
 // reencryptPaasFile performs the core reencryption logic on PAAS data
-func (s *ConversionService) reencryptPaasFile(file paasfile.File, format paasfile.Format) error {
-	hdr, err := file.GetHeader()
-	if err != nil {
-		return err
-	}
-	if err := hdr.Verify(); err != nil {
-		return err
-	}
-	if format == paasfile.PreserveFormat {
-		return s.reencryptPaasFilePreserved(&file)
-	}
-	paas, err := file.GetPaas()
+func (s *ConversionService) reencryptPaasObject(object paasobject.Object) error {
+	paas, err := object.GetPaas()
 	if err != nil {
 		return err
 	}
 	if err := s.reencryptPaas(paas); err != nil {
 		return err
 	}
-	file.SetPaas(*paas)
-	return file.Write("", format)
-}
-
-func (s *ConversionService) getSecrets(file *paasfile.File) (map[string]string, error) {
-	paas, err := file.GetPaas()
-	if err != nil {
-		return nil, err
-	}
-
-	paasName := paas.Name
-
-	crypter, err := s.Factory.GetCrypt(paasName)
-	if err != nil {
-		return nil, err
-	}
-	var errs []error
-	// Reencrypt main secrets
-	secrets := map[string]string{}
-	for key, secret := range paas.Spec.Secrets {
-		reencrypted, err := s.reencryptSecret(crypter, secret)
-		if err != nil {
-			errs = append(errs, err)
-			logrus.Errorf("failed to decrypt/reencrypt %s.spec.Secrets[%s]: %v", paasName, key, err)
-			continue
-		}
-		secrets[secret] = reencrypted
-		logrus.Infof("successfully reencrypted %s.spec.Secrets[%s]", paasName, key)
-	}
-
-	// Reencrypt capability secrets
-	for capName, cap := range paas.Spec.Capabilities {
-		for key, secret := range cap.Secrets {
-			reencrypted, err := s.reencryptSecret(crypter, secret)
-			if err != nil {
-				errs = append(errs, err)
-				logrus.Errorf("failed to decrypt/reencrypt %s.spec.Capabilities[%s].Secrets[%s]: %v",
-					paasName, capName, key, err)
-				continue
-			}
-			secrets[secret] = reencrypted
-			logrus.Infof("successfully reencrypted %s.spec.Capabilities[%s].Secrets[%s]", paasName, capName, key)
-		}
-	}
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
-	}
-	return secrets, nil
-}
-
-// reencryptPaasFilePreserved performs the core reencryption logic on PAAS data
-func (s *ConversionService) reencryptPaasFilePreserved(file *paasfile.File) error {
-	secrets, err := s.getSecrets(file)
-	if err != nil {
-		return err
-	}
-	content, err := file.GetContent()
-	if err != nil {
-		return err
-	}
-	paasAsString := string(content)
-
-	// Reencrypt main secrets
-	for secret, reencrypted := range secrets {
-		paasAsString = strings.ReplaceAll(paasAsString, strings.TrimSpace(secret), reencrypted)
-	}
-	file.SetContent([]byte(paasAsString))
-	file.WriteContent("")
-	return nil
+	return object.SetPaas(*paas)
 }

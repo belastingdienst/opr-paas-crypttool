@@ -41,7 +41,7 @@ func TestReadPaasFile(t *testing.T) {
 	var readPaasFile = func(path string) (*v1alpha2.Paas, Format, error) {
 		file := File{Path: path}
 		paas, err := file.GetPaas()
-		return paas, file.Format, err
+		return paas, file.InputFormat, err
 	}
 	// invalid path
 	paas, fileType, err := readPaasFile("invalid/path")

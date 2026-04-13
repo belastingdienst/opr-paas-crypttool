@@ -8,7 +8,7 @@ import (
 )
 
 // migrateFile handles the file-level version migration logic
-func migrateFile(file paasfile.File, outputFormat paasfile.Format) error {
+func migrateFile(file paasfile.File) error {
 	hdr, err := file.GetHeader()
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func migrateFile(file paasfile.File, outputFormat paasfile.Format) error {
 	if err != nil {
 		return err
 	}
-	err = file.Write("", outputFormat)
+	err = file.Write()
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func Migrate(files []string, outputFormat paasfile.Format) error {
 	var errs []error
 	for _, fileName := range files {
 		file := paasfile.File{Path: fileName}
-		if err := migrateFile(file, outputFormat); err != nil {
+		if err := migrateFile(file); err != nil {
 			errs = append(errs, err)
 		}
 	}
