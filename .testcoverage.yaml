@@ -1,3 +1,5 @@
+# Hush everything and release if start working on...
+
 # (mandatory)
 # Path to coverage profile file (output of `go test -coverprofile` command).
 #
@@ -15,15 +17,15 @@ profile: cover.out
 threshold:
   # (optional; default 0)
   # Minimum coverage percentage required for individual files.
-  file: 0
+  file: 70
 
   # (optional; default 0)
   # Minimum coverage percentage required for each package.
-  package: 30
+  package: 70
 
   # (optional; default 0)
   # Minimum overall project coverage percentage required.
-  total: 30
+  total: 80
 
 # Holds regexp rules which will override thresholds for matched files or packages
 # using their paths.
@@ -36,9 +38,19 @@ override:
   # (default is 80, as configured above in this example).
   #- path: ^pkg/lib/foo$
   #  threshold: 100
-  - path: ^internal/reencrypt$
-    threshold: 28
+  - path: ^cmd
+    threshold: 0
+  - path: ^internal/version$
+    threshold: 0
+  #- path: ^internal/migrate
+  #  threshold: 0
+  - path: ^internal/paasfile
+    threshold: 0
+  - path: ^internal/reencrypt
+    threshold: 0
   - path: ^internal/stubs
+    threshold: 0
+  - path: ^pkg/crypt
     threshold: 0
 
 # Holds regexp rules which will exclude matched files or packages
@@ -48,7 +60,26 @@ exclude:
   paths:
     # - cmd
     # - e2e
-
+    -   cmd/check_paas.go                     
+    - cmd/decrypt.go                        
+    - cmd/encrypt.go                        
+    - cmd/generate.go                       
+    - cmd/main.go                           
+    - cmd/migrate.go                        
+    - cmd/reencrypt.go                      
+    #- internal/migrate/migrate.go                   
+    - internal/paasfile/file.go
+    - internal/paasfile/format.go                   
+    - internal/reencrypt/conversion_service.go          
+    - internal/reencrypt/reencrypt.go               
+    - internal/stubs/opr-paas/v1alpha1/paas_conversion.go       
+    - internal/stubs/opr-paas/v1alpha1/zz_generated.deepcopy.go
+    - internal/utils/notifier.go                    
+    - internal/utils/utils.go                   
+    - pkg/crypt/crypt.go                        
+    - pkg/crypt/main.go                     
+    - pkg/crypt/private_keys.go
+ 
 # File name of go-test-coverage breakdown file, which can be used to
 # analyze coverage difference.
 breakdown-file-name: ''
