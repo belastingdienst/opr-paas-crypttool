@@ -95,6 +95,32 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(sContents).To(ContainSubstring(paasfile.V2Version))
 			}
 		})
+		It("should successfully parse Paas objects via GetPaas", func() {
+			for _, filePath := range allFiles {
+				file := paasfile.File{Path: filePath}
+
+				err := migrateFile(file)
+				Ω(err).NotTo(HaveOccurred())
+
+				paasObj, err := file.GetPaas()
+				Ω(err).NotTo(HaveOccurred())
+				Ω(paasObj).NotTo(BeNil())
+			}
+		})
+		It("should modify file contents via Write", func() {
+			for _, filePath := range allFiles {
+				original, err := os.ReadFile(filePath)
+				Ω(err).NotTo(HaveOccurred())
+
+				err = migrateFile(paasfile.File{Path: filePath})
+				Ω(err).NotTo(HaveOccurred())
+
+				updated, err := os.ReadFile(filePath)
+				Ω(err).NotTo(HaveOccurred())
+
+				Ω(string(updated)).NotTo(Equal(string(original)))
+			}
+		})
 	})
 	When("Migrating improper files", func() {
 		It("should fail", func() {
