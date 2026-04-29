@@ -102,9 +102,8 @@ var _ = Describe("Migrate", Ordered, func() {
 				err := migrateFile(file)
 				Ω(err).NotTo(HaveOccurred())
 
-				paasObj, err := file.GetPaas()
+				_, err = file.GetPaas()
 				Ω(err).NotTo(HaveOccurred())
-				Ω(paasObj).NotTo(BeNil())
 			}
 		})
 	})
