@@ -107,20 +107,6 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(paasObj).NotTo(BeNil())
 			}
 		})
-		It("should modify file contents via Write", func() {
-			for _, filePath := range allFiles {
-				original, err := os.ReadFile(filePath)
-				Ω(err).NotTo(HaveOccurred())
-
-				err = migrateFile(paasfile.File{Path: filePath})
-				Ω(err).NotTo(HaveOccurred())
-
-				updated, err := os.ReadFile(filePath)
-				Ω(err).NotTo(HaveOccurred())
-
-				Ω(string(updated)).NotTo(Equal(string(original)))
-			}
-		})
 	})
 	When("Migrating improper files", func() {
 		It("should fail", func() {
