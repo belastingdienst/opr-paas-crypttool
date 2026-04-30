@@ -60,7 +60,7 @@ exclude:
   paths:
     # - cmd
     # - e2e
-    -   cmd/check_paas.go                     
+    - cmd/check_paas.go                     
     - cmd/decrypt.go                        
     - cmd/encrypt.go                        
     - cmd/generate.go                       
