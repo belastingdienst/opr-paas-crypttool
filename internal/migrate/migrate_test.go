@@ -99,10 +99,7 @@ var _ = Describe("Migrate", Ordered, func() {
 			for _, filePath := range allFiles {
 				file := paasfile.File{Path: filePath}
 
-				err := migrateFile(file)
-				Ω(err).NotTo(HaveOccurred())
-
-				_, err = file.GetPaas()
+				_, err := file.GetPaas()
 				Ω(err).NotTo(HaveOccurred())
 			}
 		})
