@@ -9,14 +9,7 @@ import (
 
 // migrateFile handles the file-level version migration logic
 func migrateFile(file paasfile.File) error {
-	hdr, err := file.GetHeader()
-	if err != nil {
-		return err
-	}
-	if err := hdr.Verify(); err != nil {
-		return err
-	}
-	_, err = file.GetPaas()
+	_, err := file.GetPaas()
 	if err != nil {
 		return err
 	}

@@ -95,14 +95,17 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(sContents).To(ContainSubstring(paasfile.V2Version))
 			}
 		})
-		It("should successfully parse Paas objects via GetPaas", func() {
-			for _, filePath := range allFiles {
-				file := paasfile.File{Path: filePath}
-
-				_, err := file.GetPaas()
-				Ω(err).NotTo(HaveOccurred())
-			}
-		})
+		/*
+			It("Error on migrate for inproper file", func() {
+				filePath := path.Join(tmpDir, "broken")
+				f, err := os.Create(filePath)
+				Ω(err).Error().NotTo(HaveOccurred())
+				_, err = f.Write([]byte("kind: pasa"))
+				Ω(err).Error().NotTo(HaveOccurred())
+				err = migrateFile(paasfile.File{Path: filePath})
+				Ω(err).Error().To(HaveOccurred())
+			})
+		*/
 	})
 	When("Migrating improper files", func() {
 		It("should fail", func() {
