@@ -27,7 +27,9 @@ const (
 	argNamePaas            = "paas"
 	argNameDataFileKey     = "dataFile"
 	argNameOutputFormat    = "outputFormat"
+	argNameEncSecretName   = "encryptionSecretName"
 	argNameSecretName      = "secretName"
+	argNameCapabilityName  = "capabilityName"
 )
 
 var debug bool

@@ -191,6 +191,19 @@ func GetConfig(ctx context.Context) (*v1alpha2.PaasConfig, error) {
 }
 
 // GetPaases returns the paas'es in k8s
+func GetPaas(ctx context.Context, paasName string) (*v1alpha2.Paas, error) {
+	var paas v1alpha2.Paas
+	paasNamespacedName := types.NamespacedName{
+		Name: paasName,
+	}
+	// check if the cluster exists
+	if err := Client.Get(ctx, paasNamespacedName, &paas); err != nil {
+		return nil, err
+	}
+	return &paas, nil
+}
+
+// GetPaases returns the paas'es in k8s
 func GetPaases(ctx context.Context) ([]v1alpha2.Paas, error) {
 	var paases v1alpha2.PaasList
 	// check if the cluster exists

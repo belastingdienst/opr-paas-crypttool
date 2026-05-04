@@ -19,7 +19,7 @@ import (
 
 func reencryptCmd() *cobra.Command {
 	var privateKeyFileGlob string
-	var secretName string
+	var encryptionSecretName string
 	var publicKeyFile string
 	var outputFormat string
 
@@ -31,7 +31,6 @@ func reencryptCmd() *cobra.Command {
 reencrypt with the new public key and write the Paas back to the file in either yaml or json format.`,
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
-			var privateKeyFiles []string
 			var conversionService reencrypt.ConversionService
 			var objects paasobject.Objects
 			var err error
@@ -51,6 +50,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 			}
 
 			if len(privateKeyFileGlob) > 0 {
+				var privateKeyFiles []string
 				privateKeyFiles, err = utils.PathToFileList([]string{privateKeyFileGlob})
 				if err != nil {
 					return err
@@ -62,7 +62,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 					},
 				}
 			} else {
-				keys, err := keysFromK8s(command.Context(), secretName)
+				keys, err := keysFromK8s(command.Context(), encryptionSecretName)
 				if err != nil {
 					return err
 				}
@@ -86,8 +86,8 @@ reencrypt with the new public key and write the Paas back to the file in either 
 	flags := cmd.Flags()
 	flags.StringVarP(&privateKeyFileGlob, "privateKeyFiles", "p", "", "The file to read the private key from")
 	flags.StringVarP(&publicKeyFile, "publicKeyFile", "P", "", "The file to read the public key from")
-	flags.StringVarP(&secretName, argNameSecretName, "S", "",
-		"The name of the secret (leave empty to use from PaasConfig)")
+	flags.StringVarP(&encryptionSecretName, argNameEncSecretName, "S", "",
+		"The name of the secret conatining the encryption keys (leave empty to use from PaasConfig)")
 	flags.StringVar(
 		&outputFormat,
 		argNameOutputFormat,
