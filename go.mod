@@ -3,7 +3,7 @@ module github.com/belastingdienst/opr-paas-cli/v2
 go 1.25.0
 
 require (
-	github.com/belastingdienst/opr-paas/v5 v5.2.0
+	github.com/belastingdienst/opr-paas/v5 v5.4.5
 	github.com/onsi/ginkgo/v2 v2.28.3
 	github.com/onsi/gomega v1.40.0
 	github.com/sirupsen/logrus v1.9.4
