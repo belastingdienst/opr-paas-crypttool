@@ -86,6 +86,15 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(err).Error().NotTo(HaveOccurred())
 			}
 		})
+		It("should migrate all v1 files", func() {
+			for _, path := range allFiles {
+				contents, err := os.ReadFile(path)
+				Ω(err).Error().NotTo(HaveOccurred())
+				sContents := string(contents)
+				Ω(sContents).NotTo(ContainSubstring(paasfile.V1Version))
+				Ω(sContents).To(ContainSubstring(paasfile.V2Version))
+			}
+		})
 	})
 	When("Migrating improper files", func() {
 		It("should fail", func() {
