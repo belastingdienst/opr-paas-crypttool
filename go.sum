@@ -1,7 +1,7 @@
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/belastingdienst/opr-paas/v5 v5.2.0 h1:Fsx8IDknrZ8WwMu+u75TWP39wJYnu38wyuuMjV++71I=
-github.com/belastingdienst/opr-paas/v5 v5.2.0/go.mod h1:9jUyc8OgQoELYYB1pNKR+SMC0g0obi+Gw8CLZQsfYYw=
+github.com/belastingdienst/opr-paas/v5 v5.4.5 h1:RpdCTrr7KUU/JHC0owKCXFh+MaiS72FF9o8W4fOa1dw=
+github.com/belastingdienst/opr-paas/v5 v5.4.5/go.mod h1:CnHXu5EttWJh0XaykoXf8Fq0vWzF+kkaSYjggleOKMo=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
