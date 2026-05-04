@@ -9,7 +9,7 @@ import (
 
 // migrateFile handles the file-level version migration logic
 func migrateFile(file paasfile.File) error {
-	_, err = file.GetPaas()
+	_, err := file.GetPaas()
 	if err != nil {
 		return err
 	}
