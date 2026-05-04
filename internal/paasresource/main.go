@@ -18,7 +18,7 @@ func (rs Resource) GetPaas() (paas *v1alpha2.Paas, err error) {
 	if rs.paas == nil {
 		return nil, errors.New("resource has no paas set")
 	}
-	return paas, nil
+	return rs.paas, nil
 }
 
 func (rs *Resource) SetPaas(newPaas v1alpha2.Paas) error {

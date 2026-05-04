@@ -14,12 +14,12 @@ import (
 // ReencryptObjects can process a list of PaasObject types, for each retrieving a Paas from a PaasObject interface
 // datatype, reencrypt it, and writing it back.
 func (s *ConversionService) ReencryptObjects(
-	files []paasobject.Object,
+	os []paasobject.Object,
 ) error {
 	var errs []error
 
-	for _, file := range files {
-		err := s.reencryptPaasObject(file)
+	for _, o := range os {
+		err := s.reencryptPaasObject(o)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -80,6 +80,9 @@ func (s *ConversionService) reencryptCapSecrets(paasName string, capName string,
 // ReencryptPaasFile performs the core reencryption logic on PAAS data
 func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 	var errs []error
+	if paas == nil {
+		return fmt.Errorf("Cannot reencrypt a nilpaas")
+	}
 	paasName := paas.Name
 
 	crypter, err := s.Factory.GetCrypt(paasName)

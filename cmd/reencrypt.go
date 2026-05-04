@@ -40,12 +40,23 @@ reencrypt with the new public key and write the Paas back to the file in either 
 			}
 
 			if len(args) > 0 {
+				logrus.Debugf("Reading from path: %v", args)
 				if objects, err = paasfile.FilesFromPaths(args, outputFormat); err != nil {
 					return err
 				}
 			} else {
+				logrus.Debugf("Reading from k8s")
 				if objects, err = paasresource.ResourcesFromK8s(command.Context()); err != nil {
 					return err
+				}
+			}
+			if debug {
+				for _, o := range objects {
+					p, err := o.GetPaas()
+					if err != nil {
+						logrus.Errorf("error while getting Paas: %v", err)
+					}
+					logrus.Debugf("Paas: %s", p.Name)
 				}
 			}
 

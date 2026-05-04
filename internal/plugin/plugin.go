@@ -241,11 +241,8 @@ func UpdatePaasSecrets(ctx context.Context, paas *v1alpha2.Paas) error {
 		orgCap.Secrets = newCap.Secrets
 		orgPaas.Spec.Capabilities[capName] = orgCap
 	}
-	logrus.Debugf("about to update: %v", orgPaas)
-	/*
-		if err := Client.Update(ctx, &orgPaas); err != nil {
-			return err
-		}
-	*/
+	if err := Client.Update(ctx, &orgPaas); err != nil {
+		return err
+	}
 	return nil
 }
