@@ -53,7 +53,7 @@ func generateCmd() *cobra.Command {
 					return err
 				}
 			}
-			if pks, err = crypt.NewPrivateKeysFromSecretData(secret.Data); err != nil {
+			if pks, err = keysFromK8s(command.Context(), secretName); err != nil {
 				return err
 			}
 			if format == paasfile.DefaultFormat {
@@ -99,8 +99,8 @@ func generateCmd() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to write the public key to")
 	flags.StringVarP(&privateKeyFile, argNamePrivateKeyFile, "p", "", "The file to write the private key to")
+	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to write the public key to")
 	flags.StringVarP(&outputFormat, argNameOutputFormat, "o", "",
 		"The output format (leave empty not to print to stdout)")
 	flags.StringVarP(&secretName, argNameSecretName, "S", "",

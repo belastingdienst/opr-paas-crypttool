@@ -1,6 +1,7 @@
 package paasobject
 
 import (
+	"context"
 	"errors"
 
 	"github.com/belastingdienst/opr-paas/v5/api/v1alpha2"
@@ -14,13 +15,13 @@ type Objects []Object
 type Object interface {
 	GetPaas() (paas *v1alpha2.Paas, err error)
 	SetPaas(newPaas v1alpha2.Paas) error
-	Write() error
+	Write(context.Context) error
 }
 
-func (os Objects) Write() error {
+func (os Objects) Write(ctx context.Context) error {
 	var errs []error
 	for _, o := range os {
-		err := o.Write()
+		err := o.Write(ctx)
 		if err != nil {
 			errs = append(errs, err)
 		}

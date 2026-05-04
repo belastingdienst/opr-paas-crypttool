@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasresource"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/reencrypt"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,7 @@ import (
 
 func reencryptCmd() *cobra.Command {
 	var privateKeyFileGlob string
+	var secretName string
 	var publicKeyFile string
 	var outputFormat string
 
@@ -29,42 +31,63 @@ func reencryptCmd() *cobra.Command {
 reencrypt with the new public key and write the Paas back to the file in either yaml or json format.`,
 		//revive:disable-next-line
 		RunE: func(command *cobra.Command, args []string) error {
-			var files paasobject.Objects
+			var privateKeyFiles []string
+			var conversionService reencrypt.ConversionService
+			var objects paasobject.Objects
 			var err error
 
 			if debug {
 				logrus.SetLevel(logrus.DebugLevel)
 			}
 
-			if files, err = paasfile.FilesFromPaths(args, outputFormat); err != nil {
-				return err
+			if len(args) > 0 {
+				if objects, err = paasfile.FilesFromPaths(args, outputFormat); err != nil {
+					return err
+				}
+			} else {
+				if objects, err = paasresource.ResourcesFromK8s(command.Context()); err != nil {
+					return err
+				}
 			}
 
-			privateKeyFiles, err := utils.PathToFileList([]string{privateKeyFileGlob})
+			if len(privateKeyFileGlob) > 0 {
+				privateKeyFiles, err = utils.PathToFileList([]string{privateKeyFileGlob})
+				if err != nil {
+					return err
+				}
+				conversionService = reencrypt.ConversionService{
+					Factory: &reencrypt.FileCryptFactory{
+						PrivateKeyFiles: privateKeyFiles,
+						PublicKeyFile:   publicKeyFile,
+					},
+				}
+			} else {
+				keys, err := keysFromK8s(command.Context(), secretName)
+				if err != nil {
+					return err
+				}
+				conversionService = reencrypt.ConversionService{
+					Factory: &reencrypt.KeyCryptFactory{
+						Keys: keys,
+					},
+				}
+			}
+
+			err = conversionService.ReencryptObjects(objects)
 			if err != nil {
 				return err
 			}
-			conversionService := reencrypt.ConversionService{
-				Factory: &reencrypt.FileCryptFactory{
-					PrivateKeyFiles: privateKeyFiles,
-					PublicKeyFile:   publicKeyFile,
-				},
-			}
-
-			err = conversionService.ReencryptObjects(files)
-			if err != nil {
-				return err
-			}
-			return files.Write()
+			return objects.Write(command.Context())
 		},
-		Args: cobra.MinimumNArgs(1),
 		//revive:disable-next-line
 		Example: `kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()
-	flags.StringVar(&privateKeyFileGlob, "privateKeyFiles", "", "The file to read the private key from")
-	flags.StringVar(&publicKeyFile, "publicKeyFile", "", "The file to read the public key from")
+	flags.StringVarP(&privateKeyFileGlob, "privateKeyFiles", "p", "", "The file to read the private key from")
+	flags.StringVarP(&publicKeyFile, "publicKeyFile", "P", "", "The file to read the public key from")
+	flags.StringVarP(&secretName, argNameSecretName, "S", "",
+		"The name of the secret (leave empty to use from PaasConfig)")
 	flags.StringVar(
 		&outputFormat,
 		argNameOutputFormat,
