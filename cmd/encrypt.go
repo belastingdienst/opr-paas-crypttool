@@ -104,14 +104,14 @@ func encryptCmd() *cobra.Command {
 					return err
 				}
 				if capabilityName != "" {
-					cap, exists := paas.Spec.Capabilities[capabilityName]
+					capability, exists := paas.Spec.Capabilities[capabilityName]
 					if !exists {
 						return fmt.Errorf("paas %s has no capability %s", paasName, capabilityName)
 					}
-					if cap.Secrets == nil {
-						cap.Secrets = map[string]string{}
+					if capability.Secrets == nil {
+						capability.Secrets = map[string]string{}
 					}
-					cap.Secrets[secretName] = encrypted
+					capability.Secrets[secretName] = encrypted
 				} else {
 					if paas.Spec.Secrets == nil {
 						paas.Spec.Secrets = map[string]string{}
@@ -124,7 +124,7 @@ func encryptCmd() *cobra.Command {
 				plugin.Print(paas, format, os.Stdout)
 
 			default:
-				return fmt.Errorf("Cannot use --outputFormat %s, only (%s, %s, and %s)", format, paasfile.RawFormat,
+				return fmt.Errorf("cannot use --outputFormat %s, only (%s, %s, and %s)", format, paasfile.RawFormat,
 					paasfile.JSONFormat, paasfile.YAMLFormat)
 			}
 			return nil
@@ -141,7 +141,7 @@ func encryptCmd() *cobra.Command {
 		"The output format (raw for string, yaml or json for paas)")
 	flags.StringVar(&paasName, argNamePaas, "", "The paas this data is to be encrypted for")
 	flags.StringVar(&secretName, argNameSecretName, "",
-		"The name of the secret in teh paas to set (when output = yaml or json)")
+		"The name of the secret in the paas to set (when output = yaml or json)")
 	flags.StringVar(&capabilityName, argNameCapabilityName, "", "The capability (when output = yaml or json)")
 
 	for envVar, arg := range map[string]string{

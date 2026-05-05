@@ -14,6 +14,7 @@ type Resource struct {
 	paas *v1alpha2.Paas
 }
 
+// GetPaas returns the Paas in this Resource
 func (rs Resource) GetPaas() (paas *v1alpha2.Paas, err error) {
 	if rs.paas == nil {
 		return nil, errors.New("resource has no paas set")
@@ -21,18 +22,20 @@ func (rs Resource) GetPaas() (paas *v1alpha2.Paas, err error) {
 	return rs.paas, nil
 }
 
+// SetPaas sets the Paas in this Resource to a new Paas
 func (rs *Resource) SetPaas(newPaas v1alpha2.Paas) error {
 	rs.paas = &newPaas
 	return nil
 }
 
+// Write will write this resource back to k8s
 func (rs Resource) Write(ctx context.Context) error {
 	// We should probably update more in the future, but a full update without any checks is to brute force.
 	// Let's refine this as we add more functionalities to paas-cli
 	return plugin.UpdatePaasSecrets(ctx, rs.paas)
 }
 
-// FilesFromPaths can be used to collect files from one or more paths
+// ResourcesFromK8s can be used to collect the resources from k8s
 func ResourcesFromK8s(ctx context.Context) (paasobject.Objects, error) {
 	var resources = paasobject.Objects{}
 	paases, err := plugin.GetPaases(ctx)

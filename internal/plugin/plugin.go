@@ -190,7 +190,7 @@ func GetConfig(ctx context.Context) (*v1alpha2.PaasConfig, error) {
 	return &configs.Items[0], nil
 }
 
-// GetPaases returns the paas'es in k8s
+// GetPaas finds and returns the paas from k8s
 func GetPaas(ctx context.Context, paasName string) (*v1alpha2.Paas, error) {
 	var paas v1alpha2.Paas
 	paasNamespacedName := types.NamespacedName{
@@ -241,8 +241,5 @@ func UpdatePaasSecrets(ctx context.Context, paas *v1alpha2.Paas) error {
 		orgCap.Secrets = newCap.Secrets
 		orgPaas.Spec.Capabilities[capName] = orgCap
 	}
-	if err := Client.Update(ctx, &orgPaas); err != nil {
-		return err
-	}
-	return nil
+	return Client.Update(ctx, &orgPaas)
 }

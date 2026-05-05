@@ -81,7 +81,7 @@ func (s *ConversionService) reencryptCapSecrets(paasName string, capName string,
 func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 	var errs []error
 	if paas == nil {
-		return fmt.Errorf("Cannot reencrypt a nilpaas")
+		return errors.New("cannot reencrypt a nilpaas")
 	}
 	paasName := paas.Name
 
