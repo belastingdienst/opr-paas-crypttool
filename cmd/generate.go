@@ -25,7 +25,7 @@ func generateCmd() *cobra.Command {
 	var publicKeyFile string
 	var privateKeyFile string
 	var outputFormat string
-	var secretName string
+	var encryptionSecretName string
 
 	cmd := &cobra.Command{
 		Use:   "generate [command options]",
@@ -41,9 +41,9 @@ func generateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if secretName != "" {
+			if encryptionSecretName != "" {
 				oKey = &types.NamespacedName{
-					Name:      secretName,
+					Name:      encryptionSecretName,
 					Namespace: plugin.Namespace,
 				}
 			}
@@ -53,7 +53,7 @@ func generateCmd() *cobra.Command {
 					return err
 				}
 			}
-			if pks, err = crypt.NewPrivateKeysFromSecretData(secret.Data); err != nil {
+			if pks, err = keysFromK8s(command.Context(), encryptionSecretName); err != nil {
 				return err
 			}
 			if format == paasfile.DefaultFormat {
@@ -99,25 +99,25 @@ func generateCmd() *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to write the public key to")
 	flags.StringVarP(&privateKeyFile, argNamePrivateKeyFile, "p", "", "The file to write the private key to")
+	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to write the public key to")
 	flags.StringVarP(&outputFormat, argNameOutputFormat, "o", "",
 		"The output format (leave empty not to print to stdout)")
-	flags.StringVarP(&secretName, argNameSecretName, "S", "",
-		"The name of the secret (leave empty to use from PaasConfig)")
+	flags.StringVarP(&encryptionSecretName, argNameEncSecretName, "S", "",
+		"The name of the secret conating the encryption keys (leave empty to use from PaasConfig)")
 
-	if err := viper.BindPFlag(argNamePublicKeyFile, flags.Lookup(argNamePublicKeyFile)); err != nil {
-		logrus.Errorf("key binding for publicKeyFile failed: %v", err)
+	for envVar, arg := range map[string]string{
+		"PAAS_PRIVATE_KEY_PATH":  argNamePrivateKeyFile,
+		"PAAS_PUBLIC_KEY_PATH":   argNamePublicKeyFile,
+		"PAAS_FORMAT":            argNameOutputFormat,
+		"PAAS_ENCRYPTION_SECRET": argNameEncSecretName,
+	} {
+		if err := viper.BindPFlag(arg, flags.Lookup(arg)); err != nil {
+			logrus.Errorf("key binding for %s failed: %v", arg, err)
+		}
+		if err := viper.BindEnv(arg, envVar); err != nil {
+			logrus.Errorf("paas binding failed for %s: %v", arg, err)
+		}
 	}
-	if err := viper.BindPFlag(argNamePrivateKeyFile, flags.Lookup(argNamePrivateKeyFile)); err != nil {
-		logrus.Errorf("key binding for privateKeyFile failed: %v", err)
-	}
-	if err := viper.BindEnv(argNamePublicKeyFile, "PAAS_PUBLIC_KEY_PATH"); err != nil {
-		logrus.Errorf("paas public key binding failed: %v", err)
-	}
-	if err := viper.BindEnv(argNamePrivateKeyFile, "PAAS_PRIVATE_KEY_PATH"); err != nil {
-		logrus.Errorf("paas private key binding failed: %v", err)
-	}
-
 	return cmd
 }

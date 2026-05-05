@@ -189,3 +189,57 @@ func GetConfig(ctx context.Context) (*v1alpha2.PaasConfig, error) {
 	}
 	return &configs.Items[0], nil
 }
+
+// GetPaas finds and returns the paas from k8s
+func GetPaas(ctx context.Context, paasName string) (*v1alpha2.Paas, error) {
+	var paas v1alpha2.Paas
+	paasNamespacedName := types.NamespacedName{
+		Name: paasName,
+	}
+	// check if the cluster exists
+	if err := Client.Get(ctx, paasNamespacedName, &paas); err != nil {
+		return nil, err
+	}
+	return &paas, nil
+}
+
+// GetPaases returns the paas'es in k8s
+func GetPaases(ctx context.Context) ([]v1alpha2.Paas, error) {
+	var paases v1alpha2.PaasList
+	// check if the cluster exists
+	if err := Client.List(ctx, &paases); err != nil {
+		return nil, err
+	}
+	return paases.Items, nil
+}
+
+// UpdatePaasSecrets only updates all secrets in a Paas
+func UpdatePaasSecrets(ctx context.Context, paas *v1alpha2.Paas) error {
+	var orgPaas v1alpha2.Paas
+	if paas == nil {
+		return errors.New("cannot update nil-paas")
+	}
+	if paas.Name == "" {
+		return errors.New("cannot update paas without name")
+	}
+	paasNamespacedName := types.NamespacedName{
+		Name: paas.Name,
+	}
+	// get org paas
+	if err := Client.Get(ctx, paasNamespacedName, &orgPaas); err != nil {
+		return fmt.Errorf("get failed during update: %w", err)
+	}
+	if len(orgPaas.Spec.Capabilities) != len(paas.Spec.Capabilities) {
+		return errors.New("capabilities in original Paas does not match capabilities in new paas")
+	}
+	orgPaas.Spec.Secrets = paas.Spec.Secrets
+	for capName, newCap := range paas.Spec.Capabilities {
+		orgCap, exists := orgPaas.Spec.Capabilities[capName]
+		if !exists {
+			return errors.New("new paas has a capability that is not defined in original paas")
+		}
+		orgCap.Secrets = newCap.Secrets
+		orgPaas.Spec.Capabilities[capName] = orgCap
+	}
+	return Client.Update(ctx, &orgPaas)
+}

@@ -7,6 +7,7 @@ See LICENSE.md for details.
 package reencrypt
 
 import (
+	"context"
 	"os"
 	"path"
 
@@ -120,11 +121,12 @@ var _ = Describe("Reencrypt", Ordered, func() {
 	// 30 33-37 39-40 47-60 66-75 78-79 86-93 96-102 105-106 110-112 117-163 165-182 185-204
 	When("Reencrypting", Ordered, func() {
 		It("should succeed", func() {
+			ctx := context.TODO()
 			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
 			err = reencryptService.ReencryptObjects(files)
 			Ω(err).Error().NotTo(HaveOccurred())
-			err = files.Write()
+			err = files.Write(ctx)
 			Ω(err).Error().NotTo(HaveOccurred())
 
 			pf := paasfile.File{Path: paasFilePath}

@@ -8,6 +8,7 @@ package paasfile
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -347,7 +348,7 @@ func getContentFromPaas(paas v1alpha2.Paas, format Format) ([]byte, error) {
 }
 
 // Write writes the given paas to disk in a format that can be read by the parser.
-func (f File) Write() error {
+func (f File) Write(_ context.Context) error {
 	if f.OutputFormat == PreserveFormat {
 		content, err := f.getContent()
 		if err != nil {

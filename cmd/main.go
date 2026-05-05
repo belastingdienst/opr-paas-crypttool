@@ -7,13 +7,16 @@ See LICENSE.md for details.
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/plugin"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/version"
+	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
@@ -24,7 +27,9 @@ const (
 	argNamePaas            = "paas"
 	argNameDataFileKey     = "dataFile"
 	argNameOutputFormat    = "outputFormat"
+	argNameEncSecretName   = "encryptionSecretName"
 	argNameSecretName      = "secretName"
+	argNameCapabilityName  = "capabilityName"
 )
 
 var debug bool
@@ -91,4 +96,19 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func keysFromK8s(ctx context.Context, secretName string) (crypt.PrivateKeys, error) {
+	var oKey *types.NamespacedName
+	if secretName != "" {
+		oKey = &types.NamespacedName{
+			Name:      secretName,
+			Namespace: plugin.Namespace,
+		}
+	}
+	secret, err := plugin.GetPaasSecret(ctx, oKey)
+	if err != nil {
+		return nil, err
+	}
+	return crypt.NewPrivateKeysFromSecretData(secret.Data)
 }
