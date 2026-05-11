@@ -52,7 +52,7 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 
 .PHONY: test
 test: fmt vet gotest-coverage ## Run fmt, vet and tests with coverage.
-	$(GO) test $$($(GO) list ./... ) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+	$(GO) test -v $$($(GO) list ./... ) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOTEST_COVERAGE} --config=./.testcoverage.yaml
 
 .PHONY: build

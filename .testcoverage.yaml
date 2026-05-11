@@ -40,14 +40,14 @@ override:
   #  threshold: 100
   - path: ^cmd
     threshold: 0
-  - path: ^internal/version$
-    threshold: 0
+  #- path: ^internal/version$
+  #  threshold: 0
   #- path: ^internal/migrate
   #  threshold: 0
   - path: ^internal/paasfile
     threshold: 0
-  - path: ^internal/reencrypt
-    threshold: 0
+  #- path: ^internal/reencrypt
+  #  threshold: 0
   - path: ^internal/stubs
     threshold: 0
   - path: ^pkg/crypt
@@ -70,7 +70,7 @@ exclude:
     #- internal/migrate/migrate.go                   
     - internal/paasfile/file.go
     - internal/paasfile/format.go                   
-    - internal/reencrypt/conversion_service.go          
+    #- internal/reencrypt/conversion_service.go          
     - internal/reencrypt/reencrypt.go               
     - internal/stubs/opr-paas/v1alpha1/paas_conversion.go       
     - internal/stubs/opr-paas/v1alpha1/zz_generated.deepcopy.go

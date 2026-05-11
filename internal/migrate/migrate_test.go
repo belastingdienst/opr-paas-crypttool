@@ -95,18 +95,29 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(sContents).To(ContainSubstring(paasfile.V2Version))
 			}
 		})
-		/*
-			It("Error on migrate for inproper file", func() {
-				filePath := path.Join(tmpDir, "broken")
-				f, err := os.Create(filePath)
-				Ω(err).Error().NotTo(HaveOccurred())
-				_, err = f.Write([]byte("kind: pasa"))
-				Ω(err).Error().NotTo(HaveOccurred())
-				err = migrateFile(paasfile.File{Path: filePath})
+		It("should not succeed", func() {
+			for _, filePath := range allFiles {
+				os.Chmod(filePath, 0444)
+				fmt.Fprintf(GinkgoWriter, "DEBUG - migrating: %s\n", filePath)
+				err := migrateFile(paasfile.File{Path: filePath})
 				Ω(err).Error().To(HaveOccurred())
+				os.Chmod(filePath, 0666)
+			}
+		})
+		/*
+			It("should succeed", func() {
+				err := Migrate(allFiles, paasfile.AutoFormat)
+				Ω(err).Error().NotTo(HaveOccurred())
 			})
 		*/
 	})
+	When("Migrating files", func() {
+		It("should succeed", func() {
+			err := Migrate(allFiles, paasfile.AutoFormat)
+			Ω(err).Error().NotTo(HaveOccurred())
+		})
+	})
+
 	When("Migrating improper files", func() {
 		It("should fail", func() {
 			var improper_files = map[string]string{
