@@ -86,6 +86,7 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(err).Error().NotTo(HaveOccurred())
 			}
 		})
+
 		It("should migrate all v1 files", func() {
 			for _, path := range allFiles {
 				contents, err := os.ReadFile(path)
@@ -95,6 +96,7 @@ var _ = Describe("Migrate", Ordered, func() {
 				Ω(sContents).To(ContainSubstring(paasfile.V2Version))
 			}
 		})
+
 		It("should not succeed", func() {
 			for _, filePath := range allFiles {
 				os.Chmod(filePath, 0444)
@@ -111,10 +113,33 @@ var _ = Describe("Migrate", Ordered, func() {
 			})
 		*/
 	})
+
 	When("Migrating files", func() {
 		It("should succeed", func() {
 			err := Migrate(allFiles, paasfile.AutoFormat)
 			Ω(err).Error().NotTo(HaveOccurred())
+		})
+	})
+
+	When("Try migrating files", func() {
+		It("should not succeed", func() {
+			var try_files = map[string]string{
+				"a.json": `{"apiVersion": "cpet.belastingdienst.nl/v1alpha1","kind": "Pa","metadata": ` +
+					`{"name": "tst-tst"},"spec": null}`,
+				"b.json": `{"apiVersion": "cpet.belastingdienst.nl/v1alpha1","kind": "as","metadata": ` +
+					`{"name": "tst-tst"},"spec": null}`,
+			}
+			var tryFiles []string
+			for name, contents := range try_files {
+				filePath := path.Join(tmpDir, name)
+				f, err := os.Create(filePath)
+				Ω(err).Error().NotTo(HaveOccurred())
+				_, err = f.Write([]byte(contents))
+				Ω(err).Error().NotTo(HaveOccurred())
+				tryFiles = append(tryFiles, filePath)
+			}
+			err := Migrate(tryFiles, paasfile.YAMLFormat)
+			Ω(err).Error().To(HaveOccurred())
 		})
 	})
 

@@ -38,8 +38,8 @@ override:
   # (default is 80, as configured above in this example).
   #- path: ^pkg/lib/foo$
   #  threshold: 100
-  - path: ^cmd
-    threshold: 0
+  #- path: ^cmd
+  #  threshold: 0
   #- path: ^internal/version$
   #  threshold: 0
   #- path: ^internal/migrate
@@ -60,7 +60,7 @@ exclude:
   paths:
     # - cmd
     # - e2e
-    - cmd/check_paas.go                     
+    #- cmd/check_paas.go                     
     - cmd/decrypt.go                        
     - cmd/encrypt.go                        
     - cmd/generate.go                       

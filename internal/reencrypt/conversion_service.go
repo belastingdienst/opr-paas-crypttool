@@ -11,6 +11,7 @@ type ConversionService struct {
 	Factory CryptFactory
 }
 
+/* Used no where... Removed. If al works, it will be removed completly
 // NewConversionService creates a new ReencryptService with default implementations
 func NewConversionService(privateKeyFiles []string, publicKeyFile string) *ConversionService {
 	return &ConversionService{
@@ -20,3 +21,4 @@ func NewConversionService(privateKeyFiles []string, publicKeyFile string) *Conve
 		},
 	}
 }
+*/
