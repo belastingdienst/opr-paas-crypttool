@@ -18,10 +18,13 @@ import (
 )
 
 func reencryptCmd() *cobra.Command {
-	var privateKeyFileGlob string
-	var encryptionSecretName string
-	var publicKeyFile string
-	var outputFormat string
+	var (
+		privateKeyFileGlob   string
+		encryptionSecretName string
+		paasFile             string
+		publicKeyFile        string
+		outputFormat         string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "reencrypt [command options]",
@@ -39,7 +42,12 @@ reencrypt with the new public key and write the Paas back to the file in either 
 				logrus.SetLevel(logrus.DebugLevel)
 			}
 
-			if len(args) > 0 {
+			if paasFile == "-" {
+
+			} else if len(args) > 0 || paasFile != "" {
+				if paasFile != "" {
+					args = append([]string{paasFile}, args...)
+				}
 				logrus.Debugf("Reading from path: %v", args)
 				if objects, err = paasfile.FilesFromPaths(args, outputFormat); err != nil {
 					return err
@@ -91,7 +99,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 			return objects.Write(command.Context())
 		},
 		//revive:disable-next-line
-		Example: `kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`,
+		Example: `kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" -f [file or dir] ([file or dir]...)`,
 	}
 
 	flags := cmd.Flags()
