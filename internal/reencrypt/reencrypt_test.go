@@ -124,7 +124,7 @@ var _ = Describe("Reencrypt", Ordered, func() {
 			ctx := context.TODO()
 			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
-			err = reencryptService.ReencryptObjects(files)
+			err = reencryptService.ReencryptObjects(files, "", "")
 			Ω(err).Error().NotTo(HaveOccurred())
 			err = files.Write(ctx)
 			Ω(err).Error().NotTo(HaveOccurred())
@@ -164,7 +164,7 @@ var _ = Describe("Reencrypt", Ordered, func() {
 			}
 			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
-			err = otherService.ReencryptObjects(files)
+			err = otherService.ReencryptObjects(files, "", "")
 			Ω(err).Error().To(HaveOccurred())
 		})
 	})

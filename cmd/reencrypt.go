@@ -18,10 +18,14 @@ import (
 )
 
 func reencryptCmd() *cobra.Command {
-	var privateKeyFileGlob string
-	var encryptionSecretName string
-	var publicKeyFile string
-	var outputFormat string
+	var (
+		privateKeyFileGlob   string
+		encryptionSecretName string
+		publicKeyFile        string
+		outputFormat         string
+		labelFilters         string
+		annotationFilters    string
+	)
 
 	cmd := &cobra.Command{
 		Use:   "reencrypt [command options]",
@@ -84,7 +88,7 @@ reencrypt with the new public key and write the Paas back to the file in either 
 				}
 			}
 
-			err = conversionService.ReencryptObjects(objects)
+			err = conversionService.ReencryptObjects(objects, labelFilters, annotationFilters)
 			if err != nil {
 				return err
 			}
@@ -95,8 +99,8 @@ reencrypt with the new public key and write the Paas back to the file in either 
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&privateKeyFileGlob, "privateKeyFiles", "p", "", "The file to read the private key from")
-	flags.StringVarP(&publicKeyFile, "publicKeyFile", "P", "", "The file to read the public key from")
+	flags.StringVarP(&privateKeyFileGlob, argNamePrivateKeyFiles, "p", "", "The file to read the private key from")
+	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to read the public key from")
 	flags.StringVarP(&encryptionSecretName, argNameEncSecretName, "S", "",
 		"The name of the secret conatining the encryption keys (leave empty to use from PaasConfig)")
 	flags.StringVar(
@@ -107,25 +111,23 @@ reencrypt with the new public key and write the Paas back to the file in either 
 			"auto (which will use input format as output, machine formatted) or preserved (which will use the input "+
 			"format and preserve the original syntax including for example comments) ",
 	)
+	flags.StringVarP(&labelFilters, argNameLabelSelector, "l", "", "Filter by labels (supports =, == and !=)")
+	flags.StringVarP(&annotationFilters, argNameAnnotationSelector, "a", "", "Filter by annotations (supports =, == and !=)")
 
-	if err := viper.BindPFlag(argNamePrivateKeyFiles, flags.Lookup(argNamePrivateKeyFiles)); err != nil {
-		logrus.Errorf("key binding for privatekeyfiles failed: %v", err)
+	for envVar, arg := range map[string]string{
+		"PAAS_PRIVATE_KEY_PATH":    argNamePrivateKeyFiles,
+		"PAAS_PUBLIC_KEY_PATH":     argNamePublicKeyFile,
+		"PAAS_OUTPUT_FORMAT":       argNameOutputFormat,
+		"PAAS_ENCRYPTION_SECRET":   argNameEncSecretName,
+		"PAAS_LABEL_SELECTOR":      argNameLabelSelector,
+		"PAAS_ANNOTATION_SELECTOR": argNameAnnotationSelector,
+	} {
+		if err := viper.BindPFlag(arg, flags.Lookup(arg)); err != nil {
+			logrus.Errorf("key binding for %s failed: %v", arg, err)
+		}
+		if err := viper.BindEnv(arg, envVar); err != nil {
+			logrus.Errorf("paas binding failed for %s: %v", arg, err)
+		}
 	}
-	if err := viper.BindPFlag(argNamePublicKeyFile, flags.Lookup(argNamePublicKeyFile)); err != nil {
-		logrus.Errorf("key binding for publickeyfile failed: %v", err)
-	}
-	if err := viper.BindPFlag(argNameOutputFormat, flags.Lookup(argNameOutputFormat)); err != nil {
-		logrus.Errorf("key binding at output step failed: %v", err)
-	}
-	if err := viper.BindEnv(argNamePrivateKeyFiles, "PAAS_PRIVATE_KEY_PATH"); err != nil {
-		logrus.Errorf("private key to env var binding failed: %v", err)
-	}
-	if err := viper.BindEnv(argNamePublicKeyFile, "PAAS_PUBLIC_KEY_PATH"); err != nil {
-		logrus.Errorf("public key to env var binding failed: %v", err)
-	}
-	if err := viper.BindEnv(argNameOutputFormat, "PAAS_OUTPUT_FORMAT"); err != nil {
-		logrus.Errorf("key binding at output step failed: %v", err)
-	}
-
 	return cmd
 }

@@ -3,6 +3,8 @@ package reencrypt
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
@@ -15,11 +17,13 @@ import (
 // datatype, reencrypt it, and writing it back.
 func (s *ConversionService) ReencryptObjects(
 	os []paasobject.Object,
+	labelFilters string,
+	annotationFilters string,
 ) error {
 	var errs []error
 
 	for _, o := range os {
-		err := s.reencryptPaasObject(o)
+		err := s.reencryptPaasObject(o, labelFilters, annotationFilters)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -111,12 +115,76 @@ func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 	return errors.Join(errs...)
 }
 
+func isFiltered(labels map[string]string, filters string) (bool, error) {
+	var labelKVSplitter = regexp.MustCompile("^([^!=]*)(!?)=(.*)")
+
+	if labels == nil {
+		return false, nil
+	}
+	if filters == "" {
+		return false, nil
+	}
+	for _, filter := range strings.Split(filters, ",") {
+		var (
+			fKey   string
+			negate bool
+			fValue string
+		)
+		kv := labelKVSplitter.FindStringSubmatch(filter)
+		if len(kv) < 2 {
+			fKey = filter
+		} else {
+			fKey = kv[1]
+		}
+		if len(kv) > 2 {
+			negate = (kv[2] == "!")
+		}
+		if len(kv) > 3 {
+			fValue = kv[3]
+		}
+
+		logrus.Debugf("filter: %s (%s %b %s) %v", filter, fKey, negate, fValue, kv)
+
+		labelVal, exists := labels[fKey]
+		if !exists {
+			continue
+		}
+		if fValue == "" {
+			return true, nil
+		}
+		if labelVal == fValue {
+			return negate, nil
+		}
+	}
+	return false, nil
+}
+
 // reencryptPaasFile performs the core reencryption logic on PAAS data
-func (s *ConversionService) reencryptPaasObject(object paasobject.Object) error {
+func (s *ConversionService) reencryptPaasObject(
+	object paasobject.Object,
+	labelFilters string,
+	annotationFilters string,
+) error {
 	paas, err := object.GetPaas()
 	if err != nil {
 		return err
 	}
+	logrus.Debugf("anno selector %s", annotationFilters)
+	if isAnnoFlt, err := isFiltered(paas.ObjectMeta.Annotations, annotationFilters); err != nil {
+		logrus.Infof("Skipping %s (annotation selector)", paas.Name)
+		return err
+	} else if isAnnoFlt {
+		return nil
+	}
+	logrus.Debugf("label selector %s", labelFilters)
+	if isLblFlt, err := isFiltered(paas.ObjectMeta.Labels, labelFilters); err != nil {
+		logrus.Infof("Skipping %s (label selector)", paas.Name)
+		return err
+	} else if isLblFlt {
+		return nil
+	}
+
+	logrus.Infof("Reencrypting %s", paas.Name)
 	if err := s.reencryptPaas(paas); err != nil {
 		return err
 	}
