@@ -84,7 +84,7 @@ exclude:
     - pkg/crypt/main.go                     
     - pkg/crypt/private_keys.go
     - internal/paasobject/main.go
-    - internal/paassource/main.go
+    - internal/paasresource/main.go
     - internal/plugin/plugin.go
     - internal/plugin/printer.go
     - internal/reencrypt/crypt_factory.go
