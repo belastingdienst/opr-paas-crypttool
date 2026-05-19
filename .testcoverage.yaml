@@ -50,7 +50,11 @@ override:
   #  threshold: 0
   - path: ^internal/stubs
     threshold: 0
-  - path: ^pkg/crypt
+  - path: ^internal/paasresource
+    threshold: 0
+  - path: ^internal/plugin
+    threshold: 0
+  - path: ^cmd
     threshold: 0
 
 # Holds regexp rules which will exclude matched files or packages
