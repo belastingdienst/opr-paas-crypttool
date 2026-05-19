@@ -10,13 +10,3 @@ package reencrypt
 type ConversionService struct {
 	Factory CryptFactory
 }
-
-// NewConversionService creates a new ReencryptService with default implementations
-func NewConversionService(privateKeyFiles []string, publicKeyFile string) *ConversionService {
-	return &ConversionService{
-		Factory: &FileCryptFactory{
-			PrivateKeyFiles: privateKeyFiles,
-			PublicKeyFile:   publicKeyFile,
-		},
-	}
-}
