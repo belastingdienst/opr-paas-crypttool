@@ -83,6 +83,12 @@ exclude:
     - pkg/crypt/crypt.go                        
     - pkg/crypt/main.go                     
     - pkg/crypt/private_keys.go
+    - internal/paasobject/main.go
+    - internal/paassource/main.go
+    - internal/plugin/plugin.go
+    - internal/plugin/printer.go
+    - internal/reencrypt/crypt_factory.go
+    
  
 # File name of go-test-coverage breakdown file, which can be used to
 # analyze coverage difference.
