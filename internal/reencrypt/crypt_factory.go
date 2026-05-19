@@ -17,3 +17,13 @@ type FileCryptFactory struct {
 func (c *FileCryptFactory) GetCrypt(paasName string) (crypt.Cryptor, error) {
 	return crypt.NewCryptFromFiles(c.PrivateKeyFiles, c.PublicKeyFile, paasName)
 }
+
+// KeyCryptFactory implements CryptFactory using real crypt operations
+type KeyCryptFactory struct {
+	Keys crypt.PrivateKeys
+}
+
+// GetCrypt implements CryptFactory.GetCrypt
+func (c *KeyCryptFactory) GetCrypt(paasName string) (crypt.Cryptor, error) {
+	return crypt.NewCryptFromKeys(c.Keys, nil, paasName)
+}

@@ -7,12 +7,17 @@ See LICENSE.md for details.
 package main
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
+	"github.com/belastingdienst/opr-paas-cli/v2/internal/plugin"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/version"
+	"github.com/belastingdienst/opr-paas-cli/v2/pkg/crypt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 const (
@@ -22,6 +27,9 @@ const (
 	argNamePaas            = "paas"
 	argNameDataFileKey     = "dataFile"
 	argNameOutputFormat    = "outputFormat"
+	argNameEncSecretName   = "encryptionSecretName"
+	argNameSecretName      = "secretName"
+	argNameCapabilityName  = "capabilityName"
 )
 
 var debug bool
@@ -56,6 +64,7 @@ func requireSubcommand(cmd *cobra.Command, args []string) error {
 
 // createApp returns a cobra.Command, and the underlying globalOptions object, to be run or tested.
 func createApp() *cobra.Command {
+	configFlags := genericclioptions.NewConfigFlags(true)
 	rootCommand := &cobra.Command{
 		Use:              "kubectl-paas",
 		Long:             "CLI tool for managing Paas resources",
@@ -63,10 +72,14 @@ func createApp() *cobra.Command {
 		SilenceUsage:     true,
 		SilenceErrors:    true,
 		TraverseChildren: true,
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
+			return plugin.SetupKubernetesClient(configFlags)
+		},
 	}
+	configFlags.AddFlags(rootCommand.PersistentFlags())
 	rootCommand.Version = version.Version
 
-	rootCommand.PersistentFlags().BoolVar(&debug, "debug", false, "enable debug output")
+	rootCommand.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCommand.AddCommand(
 		migrateCmd(),
 		decryptCmd(),
@@ -83,4 +96,19 @@ func main() {
 	if err := rootCmd.Execute(); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func keysFromK8s(ctx context.Context, secretName string) (crypt.PrivateKeys, error) {
+	var oKey *types.NamespacedName
+	if secretName != "" {
+		oKey = &types.NamespacedName{
+			Name:      secretName,
+			Namespace: plugin.Namespace,
+		}
+	}
+	secret, err := plugin.GetPaasSecret(ctx, oKey)
+	if err != nil {
+		return nil, err
+	}
+	return crypt.NewPrivateKeysFromSecretData(secret.Data)
 }

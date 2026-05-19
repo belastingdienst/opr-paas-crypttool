@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"context"
 	"errors"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasfile"
@@ -13,7 +14,7 @@ func migrateFile(file paasfile.File) error {
 	if err != nil {
 		return err
 	}
-	err = file.Write()
+	err = file.Write(context.TODO())
 	if err != nil {
 		return err
 	}
