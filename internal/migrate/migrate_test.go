@@ -97,21 +97,14 @@ var _ = Describe("Migrate", Ordered, func() {
 			}
 		})
 
-		It("should not succeed", func() {
+		It("When the target is write protected this should not succeed", func() {
 			for _, filePath := range allFiles {
-				os.Chmod(filePath, 0444)
-				fmt.Fprintf(GinkgoWriter, "DEBUG - migrating: %s\n", filePath)
+				os.Chmod(filePath, 0444) // Force the write protection
 				err := migrateFile(paasfile.File{Path: filePath})
 				Ω(err).Error().To(HaveOccurred())
-				os.Chmod(filePath, 0666)
+				os.Chmod(filePath, 0666) // Make file writeble again, so other test won't fail
 			}
 		})
-		/*
-			It("should succeed", func() {
-				err := Migrate(allFiles, paasfile.AutoFormat)
-				Ω(err).Error().NotTo(HaveOccurred())
-			})
-		*/
 	})
 
 	When("Migrating files", func() {
