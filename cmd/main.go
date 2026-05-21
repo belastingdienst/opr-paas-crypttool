@@ -21,15 +21,17 @@ import (
 )
 
 const (
-	argNamePrivateKeyFile  = "privateKeyFile"
-	argNamePrivateKeyFiles = "privateKeyFiles"
-	argNamePublicKeyFile   = "publicKeyFile"
-	argNamePaas            = "paas"
-	argNameDataFileKey     = "dataFile"
-	argNameOutputFormat    = "outputFormat"
-	argNameEncSecretName   = "encryptionSecretName"
-	argNameSecretName      = "secretName"
-	argNameCapabilityName  = "capabilityName"
+	argNamePrivateKeyFile     = "privateKeyFile"
+	argNamePrivateKeyFiles    = "privateKeyFiles"
+	argNamePublicKeyFile      = "publicKeyFile"
+	argNamePaas               = "paas"
+	argNameDataFileKey        = "dataFile"
+	argNameOutputFormat       = "outputFormat"
+	argNameEncSecretName      = "encryptionSecretName"
+	argNameSecretName         = "secretName"
+	argNameCapabilityName     = "capabilityName"
+	argNameLabelSelector      = "selector"
+	argNameAnnotationSelector = "annotations"
 )
 
 var debug bool

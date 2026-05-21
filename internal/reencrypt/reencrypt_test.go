@@ -8,6 +8,7 @@ package reencrypt
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
 
@@ -124,7 +125,7 @@ var _ = Describe("Reencrypt", Ordered, func() {
 			ctx := context.TODO()
 			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
-			err = reencryptService.ReencryptObjects(files)
+			err = reencryptService.ReencryptObjects(files, "", "")
 			Ω(err).Error().NotTo(HaveOccurred())
 			err = files.Write(ctx)
 			Ω(err).Error().NotTo(HaveOccurred())
@@ -164,7 +165,7 @@ var _ = Describe("Reencrypt", Ordered, func() {
 			}
 			files, err := paasfile.FilesFromPaths([]string{paasFilePath}, paasfile.AutoFormat.String())
 			Ω(err).Error().NotTo(HaveOccurred())
-			err = otherService.ReencryptObjects(files)
+			err = otherService.ReencryptObjects(files, "", "")
 			Ω(err).Error().To(HaveOccurred())
 		})
 	})
@@ -233,6 +234,50 @@ var _ = Describe("Reencrypt with a mock", Ordered, func() {
 			Ω(err).Error().NotTo(HaveOccurred())
 			Ω(paas.Spec.Secrets["mysecret"]).To(Equal(reencryptedSecret))
 			mockCrypt.AssertExpectations(GinkgoT())
+		})
+	})
+})
+
+var _ = Describe("IsFiltered", Ordered, func() {
+	When("Running isFiltered", func() {
+		It("should work as expected", func() {
+			const (
+				myLbl = "mylbl"
+				myVal = "myVal"
+			)
+			var (
+				myLbls  = map[string]string{myLbl: myVal}
+				myLbls2 = map[string]string{myLbl + "2": myVal}
+			)
+			for _, t := range []struct {
+				labels   map[string]string
+				filters  string
+				expected bool
+			}{
+				{labels: myLbls, filters: "", expected: true},
+				{labels: nil, filters: myLbl, expected: false},
+				{labels: nil, filters: myLbl + "!", expected: true},
+				{labels: myLbls, filters: myLbl, expected: true},
+				{labels: myLbls, filters: myLbl + "!", expected: false},
+				// Without =, whatever comes after first ! is ignored, so this is the same the one before
+				{labels: myLbls, filters: myLbl + "!" + myVal, expected: false},
+				{labels: myLbls, filters: myLbl + "!" + myVal + "=" + myVal, expected: false},
+				{labels: myLbls, filters: myLbl + "=", expected: false},
+				{labels: myLbls, filters: myLbl + "!=", expected: true},
+				// order of = and ! should not matter
+				{labels: myLbls, filters: myLbl + "=!", expected: true},
+				{labels: myLbls, filters: myLbl + "=" + myVal, expected: true},
+				{labels: myLbls, filters: myLbl + "!=" + myVal, expected: false},
+				// myLbl is not in the list of labels
+				{labels: myLbls2, filters: myLbl, expected: false},
+				// myLbl is not in the list of labels (negated)
+				{labels: myLbls2, filters: myLbl + "!", expected: true},
+				// myLbl is not in the list of labels
+				{labels: myLbls2, filters: myLbl + "!=" + myVal, expected: false},
+			} {
+				fmt.Fprintf(GinkgoWriter, "DEBUG - Test: %v\n", t)
+				Ω(isFiltered(t.labels, t.filters)).To(Equal(t.expected))
+			}
 		})
 	})
 })

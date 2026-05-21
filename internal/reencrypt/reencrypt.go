@@ -3,6 +3,8 @@ package reencrypt
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
@@ -15,11 +17,13 @@ import (
 // datatype, reencrypt it, and writing it back.
 func (s *ConversionService) ReencryptObjects(
 	os []paasobject.Object,
+	labelFilters string,
+	annotationFilters string,
 ) error {
 	var errs []error
 
 	for _, o := range os {
-		err := s.reencryptPaasObject(o)
+		err := s.reencryptPaasObject(o, labelFilters, annotationFilters)
 		if err != nil {
 			errs = append(errs, err)
 		}
@@ -111,12 +115,85 @@ func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 	return errors.Join(errs...)
 }
 
+// isFiltered checks labels or annotations if the Paas is filtered to be reencrypted, or is filtered not to.
+// true means do reencrypt, false means do not reencrypt
+func isFiltered(labels map[string]string, filters string) bool {
+	var labelKVSplitter = regexp.MustCompile("^([^!=]*)([!=]*)(.*)")
+
+	if filters == "" {
+		return true
+	}
+	for _, filter := range strings.Split(filters, ",") {
+		var (
+			fKey           string
+			negate         bool
+			alsoCheckValue bool
+			fValue         string
+		)
+		kv := labelKVSplitter.FindStringSubmatch(filter)
+		if len(kv) < 2 {
+			fKey = filter
+		} else {
+			fKey = kv[1]
+		}
+		if len(kv) > 2 {
+			negate = strings.Contains(kv[2], "!")
+			alsoCheckValue = strings.Contains(kv[2], "=")
+		}
+
+		if len(kv) > 3 {
+			fValue = kv[3]
+		}
+
+		logrus.Debugf("filter: %s (%s %t %t %s) %v", filter, fKey, negate, alsoCheckValue, fValue, kv)
+
+		labelVal, exists := labels[fKey]
+		if !exists {
+			if !alsoCheckValue && negate {
+				continue
+			}
+			return false
+		}
+		if !alsoCheckValue {
+			if negate {
+				return false
+			}
+			// Seems like tis checks out, next filter please
+			continue
+		}
+		// If labelVal is the same as fValue, and negate is false, return false
+		// If labelVal is the same as fValue, and negate is true, continue
+		// If labelVal differs from fValue, and negate is false, continue
+		// If labelVal differs from fValue, and negate is true, return false
+		if (labelVal == fValue) == negate {
+			return false
+		}
+	}
+	return true
+}
+
 // reencryptPaasFile performs the core reencryption logic on PAAS data
-func (s *ConversionService) reencryptPaasObject(object paasobject.Object) error {
+func (s *ConversionService) reencryptPaasObject(
+	object paasobject.Object,
+	labelFilters string,
+	annotationFilters string,
+) error {
 	paas, err := object.GetPaas()
 	if err != nil {
 		return err
 	}
+	logrus.Debugf("anno selector %s", annotationFilters)
+	if isAnnoFlt := isFiltered(paas.Annotations, annotationFilters); !isAnnoFlt {
+		logrus.Infof("Skipping %s (annotation selector)", paas.Name)
+		return err
+	}
+	logrus.Debugf("label selector %s", labelFilters)
+	if isLblFlt := isFiltered(paas.Labels, labelFilters); !isLblFlt {
+		logrus.Infof("Skipping %s (label selector)", paas.Name)
+		return err
+	}
+
+	logrus.Infof("Reencrypting %s", paas.Name)
 	if err := s.reencryptPaas(paas); err != nil {
 		return err
 	}
