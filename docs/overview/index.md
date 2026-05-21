@@ -24,55 +24,7 @@ If you have any questions or feel that certain parts of the documentation can be
 improved or expanded, feel free to create a [PR](https://github.com/belastingdienst/opr-paas-cli/pulls)
 (Pull Request).
 
-For full contribution guidelines, see the `CONTRIBUTING.md` file in the root of
+For User docs, see the [user guide](./user-guide/), for admin commands (elevated permissions), see [teh admin guide](./administrators-guide).
+And for full contribution guidelines, see the `CONTRIBUTING.md` file in the root of
 the repository, the [About >> Contributing](/about/contributing/) section and/or the
 [Development Guide](/development-guide/).
-
-# Basic usage
-
-## Re-encrypting secrets with a new key
-
-The most common use case is to re-encrypt secrets in PAAS files using a new key:
-
-`kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)`
-
-!!! note
-    Rencryption without the --preserve option will always convert to the latest api version (currently v1alpha2).
-    The --preserved option has no extra validation on version and works for all currently known versions.
-    This may change in the future.
-
-## Creating a new key pair
-
-You can create a new key pair with the `keygen` command. This will generate a new
-key pair and save it to a file.
-
-`kubectl-paas generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"`
-
-## Encrypting secrets in PAAS files
-
-The `encrypt` command can be used to encrypt secrets in PAAS files. This will
-create a new encrypted version of the file, using the key pair specified with the
-`--publicKeyFile` flag.
-
-`kubectl-paas encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas`
-
-## Decrypting secrets in PAAS files
-
-The `decrypt` command can be used to decrypt secrets in PAAS files. This will
-create a new decrypted version of the file, using the key pair specified with the
-`--publicKeyFile` flag.
-
-`kubectl-paas decrypt --privateKeyFiles "/tmp/priv" --paas my-paas`
-
-## Migrating a PAAS from older versions to the latest (currently v1alpha2)
-
-The `migrate` command can be used to convert yaml/json files with PAAS versions from olders versions to the latest.
-This will read the file, migrate it to the latest version and write the new version back.
-We do not preserve any formatting, ordering, comments, etc.
-
-Example for migrating all files in the current folder:
-
-`crypttool migrate *`
-
-!!! note
-    crypttool will be renamed to kubectl-paas and will cover more than just the encryption of secrets
