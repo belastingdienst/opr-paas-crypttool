@@ -10,13 +10,9 @@
         <meta name="author" content="Dutch Tax Office">
       
       
-        <link rel="canonical" href="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/development-guide/maintaining/">
+        <link rel="canonical" href="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/user-guide/06_migrate/">
       
       
-        <link rel="prev" href="../60_writing-documentation/">
-      
-      
-        <link rel="next" href="../../about/branding/">
       
       
         
@@ -27,7 +23,7 @@
     
     
       
-        <title>Maintenance - kubectl-paas</title>
+        <title>Migration - kubectl-paas</title>
       
     
     
@@ -58,15 +54,15 @@
     
   
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Maintenance - kubectl-paas" />
-<meta property="og:image" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/assets/images/social/development-guide/maintaining.png" />
+<meta property="og:title" content="Migration - kubectl-paas" />
+<meta property="og:image" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/assets/images/social/user-guide/06_migrate.png" />
 <meta property="og:image:type" content="image/png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:url" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/development-guide/maintaining/" />
+<meta property="og:url" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/user-guide/06_migrate/" />
 <meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:title" content="Maintenance - kubectl-paas" />
-<meta property="twitter:image" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/assets/images/social/development-guide/maintaining.png" />
+<meta property="twitter:title" content="Migration - kubectl-paas" />
+<meta property="twitter:image" content="https://belastingdienst.github.io/opr-paas-cli/v2.0.x/assets/images/social/user-guide/06_migrate.png" />
 </head>
   
   
@@ -79,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#introduction" class="md-skip">
+        <a href="#migrating-a-paas-from-older-versions-to-the-latest-currently-v1alpha2" class="md-skip">
           Skip to content
         </a>
       
@@ -130,7 +126,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Maintenance
+              Migration
             
           </span>
         </div>
@@ -236,13 +232,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../development-guide/" class="md-tabs__link">
           
   
   
@@ -399,8 +393,6 @@
       
   
   
-    
-  
   
   
     
@@ -426,24 +418,22 @@
     
     
       
-        
-        
-      
       
     
     
       
+        
+        
+      
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
-        
-          
-          <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
-              
+  
+  
+  
+    <a href="../../development-guide/" class="md-nav__link">
+      
   
   
   <span class="md-ellipsis">
@@ -457,314 +447,12 @@
   
   
 
-            </a>
-            
-              
-              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
-                <span class="md-nav__icon md-icon"></span>
-              </label>
-            
-          </div>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Developer Guide
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../20_issues/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Raising issues
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../21_security-issues/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Raising security issues
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../30_submitting-a-pr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Submitting a Pull Request
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../31_writing-good-pull-request/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Writing Good Pull Requests
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../60_writing-documentation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Writing Documentation
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+        <span class="md-nav__icon md-icon"></span>
       
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Maintenance
+    </a>
   
 
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Maintenance
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#standards-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Standards used
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Standards used">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#commits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Commits
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#versioning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Versioning
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#methods-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods used
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods used">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#creating-a-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Creating a release
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
       
     </li>
   
@@ -859,81 +547,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#standards-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Standards used
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Standards used">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#commits" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Commits
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#versioning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Versioning
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#methods-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods used
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods used">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#creating-a-release" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Creating a release
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -955,7 +568,7 @@
 
 
   
-    <a href="https://github.com/belastingdienst/opr-paas-cli/edit/main/docs/development-guide/maintaining.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+    <a href="https://github.com/belastingdienst/opr-paas-cli/edit/main/docs/user-guide/06_migrate.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -963,34 +576,16 @@
   
 
 
-<h1 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h1>
-<p>This file documents the methods and standards that should be applied by the maintainers
-of this project. For example: how to create a new release.</p>
-<h2 id="standards-used">Standards used<a class="headerlink" href="#standards-used" title="Permanent link">&para;</a></h2>
-<h3 id="commits">Commits<a class="headerlink" href="#commits" title="Permanent link">&para;</a></h3>
-<p>We adhere to the <a href="https://www.conventionalcommits.org/en/v1.0.0/">Conventional Commits v1.0</a>
-standard.</p>
-<h3 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h3>
-<p>For versioning purposes, we adhere to the <a href="https://semver.org/spec/v2.0.0.html">SemVer v2.0.0</a>
-standard with a side note that we always prefix the semantic version number with
-the character 'v'. This stands for "version".</p>
-<p>As a quick summary, this means we use version numbers in the style of vX.Y.Z.
-With:</p>
-<ul>
-<li>X being major, including breaking, changes;</li>
-<li>Y being minor, possibly including patch but never breaking, changes;</li>
-<li>Z being patch, but never breaking, changes;</li>
-</ul>
-<h2 id="methods-used">Methods used<a class="headerlink" href="#methods-used" title="Permanent link">&para;</a></h2>
-<h3 id="creating-a-release">Creating a release<a class="headerlink" href="#creating-a-release" title="Permanent link">&para;</a></h3>
-<p>We release from <code>main</code>. All changes to <code>main</code> are made through PRs. Merging a PR
-will trigger the release drafter action to create a draft release.</p>
-<p>The process to create a release is mostly automated, to start it:</p>
-<ul>
-<li>Merge one or more PRs to <code>main</code>;</li>
-<li>Ensure completeness;</li>
-<li>Edit the draft release and publish it;</li>
-</ul>
+<h1 id="migrating-a-paas-from-older-versions-to-the-latest-currently-v1alpha2">Migrating a PAAS from older versions to the latest (currently v1alpha2)<a class="headerlink" href="#migrating-a-paas-from-older-versions-to-the-latest-currently-v1alpha2" title="Permanent link">&para;</a></h1>
+<p>The <code>migrate</code> command can be used to convert yaml/json files with PAAS versions from olders versions to the latest.
+This will read the file, migrate it to the latest version and write the new version back.
+We do not preserve any formatting, ordering, comments, etc.</p>
+<p>Example for migrating all files in the current folder:</p>
+<p><code>crypttool migrate *</code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>crypttool will be renamed to kubectl-paas and will cover more than just the encryption of secrets</p>
+</div>
 
 
 

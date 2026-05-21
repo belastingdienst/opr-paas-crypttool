@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../about/branding/paas-logo-v1-32x32px.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-ProperDocs 1.6.7, mkdocs-material-9.7.6">
     
     
       
@@ -609,27 +609,10 @@ developer section.</p>
 <p>If you have any questions or feel that certain parts of the documentation can be
 improved or expanded, feel free to create a <a href="https://github.com/belastingdienst/opr-paas-cli/pulls">PR</a>
 (Pull Request).</p>
-<p>For full contribution guidelines, see the <code>CONTRIBUTING.md</code> file in the root of
+<p>For User docs, see the <a href="./user-guide/">user guide</a>, for admin commands (elevated permissions), see <a href="./administrators-guide">teh admin guide</a>.
+And for full contribution guidelines, see the <code>CONTRIBUTING.md</code> file in the root of
 the repository, the <a href="/about/contributing/">About &gt;&gt; Contributing</a> section and/or the
 <a href="/development-guide/">Development Guide</a>.</p>
-<h1 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h1>
-<h2 id="re-encrypting-secrets-with-a-new-key">Re-encrypting secrets with a new key<a class="headerlink" href="#re-encrypting-secrets-with-a-new-key" title="Permanent link">&para;</a></h2>
-<p>The most common use case is to re-encrypt secrets in PAAS files using a new key:</p>
-<p><code>kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)</code></p>
-<h2 id="creating-a-new-key-pair">Creating a new key pair<a class="headerlink" href="#creating-a-new-key-pair" title="Permanent link">&para;</a></h2>
-<p>You can create a new key pair with the <code>keygen</code> command. This will generate a new
-key pair and save it to a file.</p>
-<p><code>kubectl-paas generate --publicKeyFile "/tmp/pub" --privateKeyFile "/tmp/priv"</code></p>
-<h2 id="encrypting-secrets-in-paas-files">Encrypting secrets in PAAS files<a class="headerlink" href="#encrypting-secrets-in-paas-files" title="Permanent link">&para;</a></h2>
-<p>The <code>encrypt</code> command can be used to encrypt secrets in PAAS files. This will
-create a new encrypted version of the file, using the key pair specified with the
-<code>--publicKeyFile</code> flag.</p>
-<p><code>kubectl-paas encrypt --publicKeyFile "/tmp/pub" --dataFile "/tmp/decrypted" --paas my-paas</code></p>
-<h2 id="decrypting-secrets-in-paas-files">Decrypting secrets in PAAS files<a class="headerlink" href="#decrypting-secrets-in-paas-files" title="Permanent link">&para;</a></h2>
-<p>The <code>decrypt</code> command can be used to decrypt secrets in PAAS files. This will
-create a new decrypted version of the file, using the key pair specified with the
-<code>--publicKeyFile</code> flag.</p>
-<p><code>kubectl-paas decrypt --privateKeyFiles "/tmp/priv" --paas my-paas</code></p>
 
 
 
