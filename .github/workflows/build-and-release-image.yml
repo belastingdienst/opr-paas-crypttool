@@ -1,4 +1,4 @@
-name: Build and release image + OLM and add to ghcr.io upon release
+name: Build and release image
 
 on:
   release:
@@ -79,10 +79,10 @@ jobs:
           labels: ${{ steps.opr-paas-meta.outputs.labels }}
           build-args: VERSION=${{ env.VERSION }}
 
-      - name: Generate opr-paas image SBOM
+      - name: Generate kubectl-paas image SBOM
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: '${{ env.OPERATOR_IMAGE }}:v${{ env.VERSION }}'
+          image-ref: '${{ env.IMAGE }}:v${{ env.VERSION }}'
           scan-type: image
           format: 'github'
           output: 'opr-paas_image.sbom.json'
