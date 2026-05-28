@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ghcr.io/belastingdienst/opr-paas-cli
+  CLI_IMAGE: ghcr.io/belastingdienst/opr-paas-cli
 
 concurrency:
   group: release-${{ github.ref_name }}
@@ -63,7 +63,7 @@ jobs:
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: |
-            name=${{ env.IMAGE }},enable=true
+            name=${{ env.CLI_IMAGE }},enable=true
           tags: |
             type=raw,value=v${{ env.VERSION }}
             type=raw,value=latest
@@ -82,10 +82,10 @@ jobs:
       - name: Generate kubectl-paas image SBOM
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: '${{ env.IMAGE }}:v${{ env.VERSION }}'
+          image-ref: '${{ env.CLI_IMAGE }}:v${{ env.VERSION }}'
           scan-type: image
           format: 'github'
-          output: 'opr-paas_image.sbom.json'
+          output: 'paas-cli_image.sbom.json'
           github-pat: ${{ secrets.GITHUB_TOKEN }}
           severity: 'MEDIUM,HIGH,CRITICAL'
           scanners: 'vuln'
@@ -96,4 +96,4 @@ jobs:
       - name: Add SBOM to release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
         with:
-          files: '${{ github.workspace }}/opr-paas_image.sbom.json'
+          files: '${{ github.workspace }}/paas-cli_image.sbom.json'
