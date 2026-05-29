@@ -25,7 +25,7 @@ threshold:
 
   # (optional; default 0)
   # Minimum overall project coverage percentage required.
-  total: 80
+  total: 57
 
 # Holds regexp rules which will override thresholds for matched files or packages
 # using their paths.
@@ -36,25 +36,32 @@ threshold:
 override:
   # Increase coverage threshold to 100% for `foo` package
   # (default is 80, as configured above in this example).
-  #- path: ^pkg/lib/foo$
-  #  threshold: 100
-  #- path: ^cmd
+  #- path: ^internal/paasfile
   #  threshold: 0
-  #- path: ^internal/version$
+  #- path: ^internal/reencrypt
   #  threshold: 0
-  #- path: ^internal/migrate
-  #  threshold: 0
-  - path: ^internal/paasfile
+  - path: ^pkg/crypt$ 
+    threshold: 52.0
+  - path: ^internal/paasresource$
     threshold: 0
-  - path: ^internal/reencrypt
+  - path: ^internal/plugin$
     threshold: 0
-  - path: ^internal/stubs
+
+  - path: ^pkg/crypt/crypt.go			      
+    threshold: 69.0
+  - path: ^internal/paasfile/format.go
+    threshold: 66.7
+  - path: ^internal/reencrypt/crypt_factory.go
+    threshold: 50.0
+  - path: ^pkg/crypt/main.go				
+    threshold: 10.0
+  - path: ^pkg/crypt/private_keys.go			
+    threshold: 53.7
+  - path: ^internal/paasresource/main.go
     threshold: 0
-  - path: ^internal/paasresource
+  - path: ^internal/plugin/plugin.go
     threshold: 0
-  - path: ^internal/plugin
-    threshold: 0
-  - path: ^cmd
+  - path: ^internal/plugin/printer.go
     threshold: 0
 
 # Holds regexp rules which will exclude matched files or packages
@@ -62,33 +69,9 @@ override:
 exclude:
   # Exclude files or packages matching their paths
   paths:
-    # - cmd
-    # - e2e
-    - cmd/check_paas.go                     
-    - cmd/decrypt.go                        
-    - cmd/encrypt.go                        
-    - cmd/generate.go                       
-    - cmd/main.go                           
-    - cmd/migrate.go                        
-    - cmd/reencrypt.go                      
-    #- internal/migrate/migrate.go                   
-    - internal/paasfile/file.go
-    - internal/paasfile/format.go                   
-    - internal/reencrypt/conversion_service.go          
-    - internal/reencrypt/reencrypt.go               
-    - internal/stubs/opr-paas/v1alpha1/paas_conversion.go       
-    - internal/stubs/opr-paas/v1alpha1/zz_generated.deepcopy.go
-    - internal/utils/notifier.go                    
-    - internal/utils/utils.go                   
-    - pkg/crypt/crypt.go                        
-    - pkg/crypt/main.go                     
-    - pkg/crypt/private_keys.go
-    - internal/paasobject/main.go
-    - internal/paasresource/main.go
-    - internal/plugin/plugin.go
-    - internal/plugin/printer.go
-    - internal/reencrypt/crypt_factory.go
-    
+    - cmd                    
+    - internal/stubs
+    - e2e
  
 # File name of go-test-coverage breakdown file, which can be used to
 # analyze coverage difference.
