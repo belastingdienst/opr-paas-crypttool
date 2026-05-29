@@ -201,7 +201,7 @@ var _ = Describe("Reencrypt with a mock", Ordered, func() {
 		reencryptedSecret = "new-encrypted"
 	)
 	var (
-		paas = &v1alpha2.Paas{
+		paas = v1alpha2.Paas{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "test-paas",
 			},
@@ -230,9 +230,9 @@ var _ = Describe("Reencrypt with a mock", Ordered, func() {
 
 	When("Reencrypting", func() {
 		It("should work as expected", func() {
-			err := service.reencryptPaas(paas)
+			reencryptedPaas, err := service.reencryptPaas(paas)
 			Ω(err).Error().NotTo(HaveOccurred())
-			Ω(paas.Spec.Secrets["mysecret"]).To(Equal(reencryptedSecret))
+			Ω(reencryptedPaas.Spec.Secrets["mysecret"]).To(Equal(reencryptedSecret))
 			mockCrypt.AssertExpectations(GinkgoT())
 		})
 	})

@@ -134,19 +134,24 @@ func paasSecretDiff(oldPaas, newPaas v1alpha2.Paas) (map[string]string, error) {
 		oldSecrets map[string]string
 		newSecrets map[string]string
 	}
-	var secretMappers = []mapper{
-		{oldSecrets: oldPaas.Spec.Secrets, newSecrets: newPaas.Spec.Secrets},
+	var secretMappers = []mapper{}
+	if len(oldPaas.Spec.Secrets) != len(newPaas.Spec.Secrets) {
+		return nil, errors.New("oldPaas has less or more secrets than new paas")
+	}
+	if len(oldPaas.Spec.Secrets) > 0 {
+		secretMappers = append(secretMappers,
+			mapper{oldSecrets: oldPaas.Spec.Secrets, newSecrets: newPaas.Spec.Secrets})
 	}
 	for capName, oldCap := range oldPaas.Spec.Capabilities {
 		newCap, exists := newPaas.Spec.Capabilities[capName]
+		if len(oldCap.Secrets) != len(newCap.Secrets) {
+			return nil, errors.New("oldPaas has capability with less or more secrets than new paas")
+		}
 		if !exists {
 			if len(oldCap.Secrets) == 0 {
 				continue
 			}
 			return nil, errors.New("oldPaas has capability which does not exist for new paas")
-		}
-		if len(oldCap.Secrets) != len(newCap.Secrets) {
-			return nil, errors.New("oldPaas has capability with less or more secrets than new paas")
 		}
 		secretMappers = append(secretMappers, mapper{oldSecrets: oldCap.Secrets, newSecrets: newCap.Secrets})
 	}

@@ -82,20 +82,18 @@ func (s *ConversionService) reencryptCapSecrets(paasName string, capName string,
 }
 
 // ReencryptPaasFile performs the core reencryption logic on PAAS data
-func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
+func (s *ConversionService) reencryptPaas(originalPaas v1alpha2.Paas) (*v1alpha2.Paas, error) {
 	var errs []error
-	if paas == nil {
-		return errors.New("cannot reencrypt a nilpaas")
-	}
-	paasName := paas.Name
+	reencryptedPaas := originalPaas.DeepCopy()
+	paasName := reencryptedPaas.Name
 
 	crypter, err := s.Factory.GetCrypt(paasName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Reencrypt main secrets
-	for key, secret := range paas.Spec.Secrets {
+	for key, secret := range reencryptedPaas.Spec.Secrets {
 		reencrypted, err := s.reencryptSecret(crypter, secret)
 		if err != nil {
 			err := fmt.Errorf("failed to decrypt/reencrypt %s.spec.Secrets[%s]: %v", paasName, key, err)
@@ -104,15 +102,15 @@ func (s *ConversionService) reencryptPaas(paas *v1alpha2.Paas) error {
 			continue
 		}
 
-		paas.Spec.Secrets[key] = reencrypted
+		reencryptedPaas.Spec.Secrets[key] = reencrypted
 		logrus.Debugf("successfully reencrypted %s.spec.Secrets[%s]", paasName, key)
 	}
 
 	// Reencrypt capability secrets
-	for capName, cap := range paas.Spec.Capabilities {
+	for capName, cap := range reencryptedPaas.Spec.Capabilities {
 		errs = append(errs, s.reencryptCapSecrets(paasName, capName, &cap, crypter)...)
 	}
-	return errors.Join(errs...)
+	return reencryptedPaas, errors.Join(errs...)
 }
 
 // isFiltered checks labels or annotations if the Paas is filtered to be reencrypted, or is filtered not to.
@@ -194,8 +192,10 @@ func (s *ConversionService) reencryptPaasObject(
 	}
 
 	logrus.Infof("Reencrypting %s", paas.Name)
-	if err := s.reencryptPaas(paas); err != nil {
+	// Making a copy so we don;t overwrite object.paas. We do that with SetPaas.
+	reencryptedPaas, err := s.reencryptPaas(*paas)
+	if err != nil {
 		return err
 	}
-	return object.SetPaas(*paas)
+	return object.SetPaas(*reencryptedPaas)
 }
