@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/paasobject"
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/stubs/opr-paas/v1alpha1"
@@ -184,7 +185,7 @@ func (f *File) SetPaas(newPaas v1alpha2.Paas) error {
 		return nil
 	}
 	for oldSecret, newSecret := range m {
-		f.content = bytes.ReplaceAll(f.content, []byte(oldSecret), []byte(newSecret))
+		f.content = bytes.ReplaceAll(f.content, []byte(strings.TrimSpace(oldSecret)), []byte(newSecret))
 	}
 	f.paas = &newPaas
 	return nil
