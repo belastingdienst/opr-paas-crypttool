@@ -102,7 +102,7 @@ func generateCmd() *cobra.Command {
 	flags.StringVarP(&privateKeyFile, argNamePrivateKeyFile, "p", "", "The file to write the private key to")
 	flags.StringVarP(&publicKeyFile, argNamePublicKeyFile, "P", "", "The file to write the public key to")
 	flags.StringVarP(&outputFormat, argNameOutputFormat, "o", "",
-		"The output format (leave empty not to print to stdout)")
+		"The output format (leave empty to use the default)")
 	flags.StringVarP(&encryptionSecretName, argNameEncSecretName, "S", "",
 		"The name of the secret conating the encryption keys (leave empty to use from PaasConfig)")
 
