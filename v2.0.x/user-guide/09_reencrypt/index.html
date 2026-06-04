@@ -544,6 +544,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -552,10 +554,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#re-encrypting-secrets-with-a-new-key" class="md-nav__link">
+  <a href="#label-and-annotation-filters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Re-encrypting secrets with a new key
+        Label and annotation filters
       
     </span>
   </a>
@@ -593,9 +595,7 @@
   
 
 
-  <h1>Reencryption</h1>
-
-<h2 id="re-encrypting-secrets-with-a-new-key">Re-encrypting secrets with a new key<a class="headerlink" href="#re-encrypting-secrets-with-a-new-key" title="Permanent link">&para;</a></h2>
+<h1 id="re-encrypting-secrets-with-a-new-key">Re-encrypting secrets with a new key<a class="headerlink" href="#re-encrypting-secrets-with-a-new-key" title="Permanent link">&para;</a></h1>
 <p>The most common use case is to re-encrypt secrets in PAAS files using a new key:</p>
 <p><code>kubectl-paas reencrypt --privateKeyFiles "/tmp/priv" --publicKeyFile "/tmp/pub" [file or dir] ([file or dir]...)</code></p>
 <div class="admonition note">
@@ -603,6 +603,40 @@
 <p>Rencryption without the --preserve option will always convert to the latest api version (currently v1alpha2).
 The --preserved option has no extra validation on version and works for all currently known versions.
 This may change in the future.</p>
+</div>
+<h2 id="label-and-annotation-filters">Label and annotation filters<a class="headerlink" href="#label-and-annotation-filters" title="Permanent link">&para;</a></h2>
+<p>We have implemented a feature to filter Paas'es depending on labels and annotations.
+The main implementation resembles the -l option of kubectl as closely as possible, but:
+- We have more options with ! and =
+- We have also implemented this for Annotations</p>
+<p>Main goal is to be able to skip Paas'es with argocd annotations.
+An overview of how it works:
+- You can specify one or more label filters with the -l, or --selector arguments, or with the <code>PAAS_LABEL_SELECTOR</code> environment variable.
+- You can also specify one or more label filters with the -a, or --annotations arguments, or with the <code>PAAS_ANNOTATION_SELECTOR</code> environment variable.
+- If you want to specify more then one filter, add them as a comma seperated list
+- You have the following options to specify a filter:
+  - If you want to include a paas if the key is set, only specify the key (e.a. <code>includedKey</code>).
+  - If you want to exclude a paas if the key is set, specify the key, and negate the filter by adding a exclamation sign (e.a. <code>excludedKey!</code>).
+  - If you want to include a paas if the key is set to a specific value, specify this in the form of <code>key=value</code>
+  - If you want to exclude a paas if the key is set to a specific value, specify this in the form of <code>key!=value</code>
+    (note that both <code>!=</code> and <code>=!</code> work, but for readability the former is adviced over the latter)</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="language-bash highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># reencrypt all Paas&#39;es with a label infra=... set</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>kubectl<span class="w"> </span>paas<span class="w"> </span>reencrypt<span class="w"> </span>-l<span class="w"> </span><span class="s1">&#39;infra&#39;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># reencrypt all Paas&#39;es with a label `infra` set to `paas`</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>kubectl<span class="w"> </span>paas<span class="w"> </span>reencrypt<span class="w"> </span>-l<span class="w"> </span><span class="s1">&#39;infra=paas&#39;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># reencrypt all Paas&#39;es except those with a label `appteam` set</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>kubectl<span class="w"> </span>paas<span class="w"> </span>reencrypt<span class="w"> </span>-l<span class="w"> </span><span class="s1">&#39;appteam!&#39;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># reencrypt only Paas&#39;es with a label `appteam` except those with a label `appteam` set to `appteam1`</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>kubectl<span class="w"> </span>paas<span class="w"> </span>reencrypt<span class="w"> </span>-l<span class="w"> </span><span class="s1">&#39;appteam,appteam!=appteam1&#39;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># filter out those that are argocd managed:</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>kubectl<span class="w"> </span>paas<span class="w"> </span>reencrypt<span class="w"> </span>-a<span class="w"> </span><span class="s1">&#39;argocd.argoproj.io/instance!&#39;</span>
+</code></pre></div>
 </div>
 
 
