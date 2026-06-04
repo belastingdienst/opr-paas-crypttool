@@ -3,7 +3,7 @@ module github.com/belastingdienst/opr-paas-cli/v2
 go 1.26.0
 
 require (
-	github.com/belastingdienst/opr-paas/v5 v5.5.0
+	github.com/belastingdienst/opr-paas/v5 v5.6.0
 	github.com/onsi/ginkgo/v2 v2.29.0
 	github.com/onsi/gomega v1.41.0
 	github.com/sirupsen/logrus v1.9.4
@@ -84,7 +84,7 @@ require (
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.36.0 // indirect
+	k8s.io/apiextensions-apiserver v0.36.1 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260504175024-7bfe71ffdc10 // indirect
 	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5 // indirect
