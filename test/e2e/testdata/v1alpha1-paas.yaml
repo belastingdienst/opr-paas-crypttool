@@ -1,0 +1,22 @@
+apiVersion: cpet.belastingdienst.nl/v1alpha1
+kind: Paas
+metadata:
+  name: test-migrate-paas
+spec:
+  requestor: test-team
+  quota:
+    limits.cpu: "4"
+    limits.memory: 4Gi
+  sshSecrets: {}
+  groups: {}
+  namespaces: []
+  managedByPaas: ""
+  capabilities:
+    argocd:
+      enabled: true
+      gitUrl: "ssh://git@scm/org/repo.git"
+      gitRevision: main
+      gitPath: "."
+      quota: {}
+      sshSecrets: {}
+      extra_permissions: false

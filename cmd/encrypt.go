@@ -55,9 +55,11 @@ func encryptCmd() *cobra.Command {
 			}
 			if len(publicKeyFile) > 0 || len(privateKeyFileGlob) > 0 {
 				var privateKeyFiles []string
-				privateKeyFiles, err = utils.PathToFileList([]string{privateKeyFileGlob})
-				if err != nil {
-					return err
+				if len(privateKeyFileGlob) > 0 {
+					privateKeyFiles, err = utils.PathToFileList([]string{privateKeyFileGlob})
+					if err != nil {
+						return err
+					}
 				}
 				conversionService = reencrypt.ConversionService{
 					Factory: &reencrypt.FileCryptFactory{

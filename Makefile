@@ -1,4 +1,5 @@
 GO := $(shell which go)
+KUBECTL ?= kubectl
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -52,12 +53,34 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 
 .PHONY: test
 test: fmt vet gotest-coverage ## Run fmt, vet and tests with coverage.
-	$(GO) test -v $$($(GO) list ./... ) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+	$(GO) test -v $$($(GO) list ./... | grep -v /e2e) -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOTEST_COVERAGE} --config=./.testcoverage.yaml
 
 .PHONY: build
 build: ## Build the application.
 	$(GO) build -o $(LOCALBIN)/kubectl-paas ./cmd/...
+
+.PHONY: test-e2e
+test-e2e: build ## Run e2e tests against whichever cluster KUBECONFIG points to (needs opr-paas CRDs installed).
+	$(GO) test -count=1 -v ./test/e2e
+
+.PHONY: setup-e2e
+setup-e2e: ## Install opr-paas CRDs into the current cluster (no operator needed).
+	$(KUBECTL) apply --server-side -k test/e2e/crd/
+	$(KUBECTL) wait --for=condition=Established crd/paasconfig.cpet.belastingdienst.nl --timeout=60s
+	$(KUBECTL) wait --for=condition=Established crd/paas.cpet.belastingdienst.nl --timeout=60s
+	$(KUBECTL) wait --for=condition=Established crd/paasns.cpet.belastingdienst.nl --timeout=60s
+
+.PHONY: kind-create-cluster
+kind-create-cluster: kind ## Create a fresh kind cluster for local e2e.
+	$(KIND) create cluster
+
+.PHONY: kind-delete-cluster
+kind-delete-cluster: kind ## Delete the kind cluster (ignores errors if no cluster exists).
+	$(KIND) delete cluster || true
+
+.PHONY: local-e2e
+local-e2e: kind-delete-cluster kind-create-cluster setup-e2e test-e2e ## Spin up a kind cluster, install CRDs, build, and run e2e tests.
 
 ##@ Dependencies
 
@@ -69,10 +92,12 @@ $(LOCALBIN):
 ## Tool Binaries
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 GOTEST_COVERAGE = $(LOCALBIN)/go-test-coverage
+KIND = $(LOCALBIN)/kind
 
 ## Tool Versions
 GOLANGCI_LINT_VERSION ?= v2.4.0
 GOTEST_COVERAGE_VERSION ?= latest
+KIND_VERSION ?= v0.30.0
 
 ## Install golangci-lint using official script instead of 'go install' as that
 ## last one does not yield a working version.
@@ -92,6 +117,11 @@ $(GOLANGCI_LINT): $(LOCALBIN)
 gotest-coverage: $(GOTEST_COVERAGE) ## Download go-test-coverage locally if necessary.
 $(GOTEST_COVERAGE): $(LOCALBIN)
 	$(call go-install-tool,$(GOTEST_COVERAGE),github.com/vladopajic/go-test-coverage/v2,$(GOTEST_COVERAGE_VERSION))
+
+.PHONY: kind
+kind: $(KIND) ## Download kind locally if necessary.
+$(KIND): $(LOCALBIN)
+	$(call go-install-tool,$(KIND),sigs.k8s.io/kind,$(KIND_VERSION))
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary
