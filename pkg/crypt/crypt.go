@@ -63,20 +63,40 @@ func NewCryptFromFiles(privateKeyPaths []string, publicKeyPath string, encryptio
 	}, nil
 }
 
-// NewCryptFromKeys returns a Crypt based on the provided privateKeys and publicKey (from memory) using the
-// encryptionContext
-func NewCryptFromKeys(privateKeys PrivateKeys, publicKey *rsa.PublicKey, encryptionContext string) (*Crypt, error) {
-	if publicKey == nil {
-		var err error
-		if publicKey, err = privateKeys.PublicKey(); err != nil {
-			return nil, err
-		}
+// NewCryptFromKeys returns a Crypt based on the provided privateKeys and publicKey using the encryptionContext.
+//
+// publicKey accepts the historical public key path string argument, a *rsa.PublicKey for in-memory keys, or nil
+// to derive the public key from the private keys.
+func NewCryptFromKeys(privateKeys PrivateKeys, publicKey any, encryptionContext string) (*Crypt, error) {
+	publicKeyValue, err := resolvePublicKey(privateKeys, publicKey)
+	if err != nil {
+		return nil, err
 	}
+
 	return &Crypt{
 		privateKeys:       privateKeys,
-		publicKey:         publicKey,
+		publicKey:         publicKeyValue,
 		encryptionContext: []byte(encryptionContext),
 	}, nil
+}
+
+func resolvePublicKey(privateKeys PrivateKeys, publicKey any) (*rsa.PublicKey, error) {
+	switch value := publicKey.(type) {
+	case nil:
+		return nil, nil
+	case *rsa.PublicKey:
+		if value == nil {
+			return nil, nil
+		}
+		return value, nil
+	case string:
+		if value == "" {
+			return nil, nil
+		}
+		return readPublicKeyFromDisk(value)
+	default:
+		return nil, fmt.Errorf("unsupported public key type %T", publicKey)
+	}
 }
 
 // NewGeneratedCrypt generates a new Crypt instance with randomly generated private
