@@ -45,7 +45,7 @@ func NewPrivateKeysFromFiles(privateKeyPaths []string) (PrivateKeys, error) {
 	}
 
 	for _, file := range files {
-		logrus.Infof("reading file %v", file)
+		logrus.Debugf("reading file %v", file)
 		if pk, err = NewPrivateKeyFromFile(file); err != nil {
 			return nil, fmt.Errorf("invalid private key file %s", file)
 		}
