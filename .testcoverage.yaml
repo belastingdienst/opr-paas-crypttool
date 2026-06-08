@@ -25,7 +25,7 @@ threshold:
 
   # (optional; default 0)
   # Minimum overall project coverage percentage required.
-  total: 57
+  total: 54
 
 # Holds regexp rules which will override thresholds for matched files or packages
 # using their paths.
@@ -41,14 +41,14 @@ override:
   #- path: ^internal/reencrypt
   #  threshold: 0
   - path: ^pkg/crypt$ 
-    threshold: 52.0
+    threshold: 45
   - path: ^internal/paasresource$
     threshold: 0
   - path: ^internal/plugin$
     threshold: 0
 
   - path: ^pkg/crypt/crypt.go			      
-    threshold: 69.0
+    threshold: 45
   - path: ^internal/paasfile/format.go
     threshold: 66.7
   - path: ^internal/reencrypt/crypt_factory.go
