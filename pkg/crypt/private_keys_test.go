@@ -22,13 +22,15 @@ var _ = Describe("PrivateKeys", func() {
 
 				// write private keys to files
 				pk1, err := GeneratePrivateKey()
+				Expect(err).NotTo(HaveOccurred())
 				err = pk1.WritePrivateKey(privateFile1.Name())
 				Expect(err).NotTo(HaveOccurred())
 
 				pk2, err := GeneratePrivateKey()
-				pk2.isCurrent = true
+				Expect(err).NotTo(HaveOccurred())
 				err = pk2.WritePrivateKey(privateFile2.Name())
 				Expect(err).NotTo(HaveOccurred())
+				pk2.isCurrent = true
 
 				privateKeys := PrivateKeys{
 					"pk1": pk1,
@@ -55,10 +57,14 @@ var _ = Describe("PrivateKeys", func() {
 
 				// write private keys to files
 				pk1, err := GeneratePrivateKey()
+				Expect(err).NotTo(HaveOccurred())
+
 				err = pk1.WritePrivateKey(privateFile1.Name())
 				Expect(err).NotTo(HaveOccurred())
 
 				pk2, err := GeneratePrivateKey()
+				Expect(err).NotTo(HaveOccurred())
+
 				err = pk2.WritePrivateKey(privateFile2.Name())
 				Expect(err).NotTo(HaveOccurred())
 
@@ -79,10 +85,13 @@ var _ = Describe("PrivateKeys", func() {
 				// generate private key
 				privateFile1, err := os.CreateTemp("", "private1")
 				Expect(err).NotTo(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 				defer os.Remove(privateFile1.Name()) // clean up
 
 				// write private key to file
 				pk1, err := GeneratePrivateKey()
+				Expect(err).NotTo(HaveOccurred())
+
 				err = pk1.WritePrivateKey(privateFile1.Name())
 				Expect(err).NotTo(HaveOccurred())
 
