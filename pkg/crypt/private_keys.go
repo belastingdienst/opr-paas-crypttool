@@ -87,7 +87,6 @@ func (pks PrivateKeys) PublicKey() (*rsa.PublicKey, error) {
 
 	for _, pk := range pks {
 		if pk.isCurrent {
-			logrus.Debug("found current key")
 			return &pk.privateKey.PublicKey, nil
 		}
 	}
@@ -184,7 +183,6 @@ func NewPrivateKeyFromPem(privateKeyPath string, privateKeyPem []byte) (*Private
 
 	isCurrent := filepath.Base(privateKeyPath) == "current"
 	if isCurrent {
-		logrus.Debugf("found current key")
 		isCurrent = true
 	}
 

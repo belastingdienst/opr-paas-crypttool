@@ -55,7 +55,7 @@ func TestRsa(t *testing.T) {
 	assert.Equal(t, string(decrypted), string(original))
 }
 
-func TestCrypt(t *testing.T) {
+func TestEncryptingAndDecrypting(t *testing.T) {
 	const (
 		minimalEncryptedLength = 100
 	)
