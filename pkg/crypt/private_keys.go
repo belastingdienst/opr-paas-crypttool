@@ -17,9 +17,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/belastingdienst/opr-paas-cli/v2/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -43,6 +45,7 @@ func NewPrivateKeysFromFiles(privateKeyPaths []string) (PrivateKeys, error) {
 	}
 
 	for _, file := range files {
+		logrus.Debugf("reading file %v", file)
 		if pk, err = NewPrivateKeyFromFile(file); err != nil {
 			return nil, fmt.Errorf("invalid private key file %s", file)
 		}
@@ -81,8 +84,11 @@ func (pks PrivateKeys) PublicKey() (*rsa.PublicKey, error) {
 			return &pk.privateKey.PublicKey, nil
 		}
 	}
-	if pk, exists := pks["current"]; exists {
-		return &pk.privateKey.PublicKey, nil
+
+	for _, pk := range pks {
+		if pk.isCurrent {
+			return &pk.privateKey.PublicKey, nil
+		}
 	}
 	return nil, errors.New("cannot get Public key from multiple keys unless there is a 'current' key")
 }
@@ -123,6 +129,7 @@ type PrivateKey struct {
 	fingerprint   string
 	privateKeyPem []byte
 	privateKey    *rsa.PrivateKey
+	isCurrent     bool
 }
 
 // GetID returns an ID generated from public key has and date of insertion
@@ -173,11 +180,18 @@ func NewPrivateKeyFromPem(privateKeyPath string, privateKeyPem []byte) (*Private
 			return nil, errors.New("geen RSA private key gevonden in PKCS8 block")
 		}
 	}
+
+	isCurrent := filepath.Base(privateKeyPath) == "current"
+	if isCurrent {
+		isCurrent = true
+	}
+
 	return &PrivateKey{
 		timestamp:     time.Now(),
 		fingerprint:   fmt.Sprintf("%x", sha256.Sum256(key.N.Bytes())),
 		privateKeyPem: privateKeyPem,
 		privateKey:    key,
+		isCurrent:     isCurrent,
 	}, nil
 }
 
