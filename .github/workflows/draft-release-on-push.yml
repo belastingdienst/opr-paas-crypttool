@@ -26,7 +26,7 @@ jobs:
       pull-requests: write
     steps:
       # Run autolabeler (separate actions since v7)
-      - uses: release-drafter/release-drafter/autolabeler@3a7fb5c85b80b1dda66e1ccb94009adbbd32fce3 # v7.0.0
+      - uses: release-drafter/release-drafter/autolabeler@4d75298e00d9e34c483e5ff8c68d0ea1c1940c1e # v7.5.1
 
   update_release_draft:
     permissions:
