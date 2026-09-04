@@ -8,6 +8,7 @@ package crypt
 
 import (
 	"bytes"
+	"crypto/ecdh"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -149,15 +150,18 @@ func (pks PrivateKeys) AsSecretData() (data map[string][]byte) {
 }
 
 // A PrivateKey is used for decryption of encrypted secrets. Algorithm identifies which scheme it belongs
-// to (AlgorithmRSAOAEP or AlgorithmMLKEM768); only the corresponding key field below is populated.
+// to (AlgorithmRSAOAEP or AlgorithmMLKEM768); only the corresponding key field(s) below are populated --
+// AlgorithmMLKEM768 populates both x25519PrivateKey and mlkemPrivateKey, since that scheme combines the
+// two (see hybrid.go).
 type PrivateKey struct {
-	timestamp       time.Time
-	fingerprint     string
-	privateKeyPem   []byte
-	privateKey      *rsa.PrivateKey
-	algorithm       string
-	mlkemPrivateKey *mlkem768.PrivateKey
-	isCurrent       bool
+	timestamp        time.Time
+	fingerprint      string
+	privateKeyPem    []byte
+	privateKey       *rsa.PrivateKey
+	algorithm        string
+	x25519PrivateKey *ecdh.PrivateKey
+	mlkemPrivateKey  *mlkem768.PrivateKey
+	isCurrent        bool
 }
 
 // GetID returns an ID generated from public key has and date of insertion
@@ -228,13 +232,22 @@ func NewPrivateKeyFromPem(privateKeyPath string, privateKeyPem []byte) (*Private
 	}, nil
 }
 
-// newMLKEM768PrivateKeyFromPem parses the ML-KEM-768 private key packed into block.Bytes.
+// newMLKEM768PrivateKeyFromPem parses the combined X25519+ML-KEM-768 private key packed into
+// block.Bytes: the first x25519KeySize bytes are the raw X25519 scalar, followed by the packed
+// ML-KEM-768 private key.
 func newMLKEM768PrivateKeyFromPem(privateKeyPem []byte, block *pem.Block, isCurrent bool) (*PrivateKey, error) {
-	if len(block.Bytes) != mlkem768.PrivateKeySize {
-		return nil, fmt.Errorf("invalid ml-kem-768 private key size: got %d, want %d",
-			len(block.Bytes), mlkem768.PrivateKeySize)
+	wantSize := x25519KeySize + mlkem768.PrivateKeySize
+	if len(block.Bytes) != wantSize {
+		return nil, fmt.Errorf("invalid x25519+ml-kem-768 private key size: got %d, want %d",
+			len(block.Bytes), wantSize)
 	}
-	key, err := mlkem768.Scheme().UnmarshalBinaryPrivateKey(block.Bytes)
+
+	x25519Priv, err := ecdh.X25519().NewPrivateKey(block.Bytes[:x25519KeySize])
+	if err != nil {
+		return nil, fmt.Errorf("x25519 private key invalid: %w", err)
+	}
+
+	key, err := mlkem768.Scheme().UnmarshalBinaryPrivateKey(block.Bytes[x25519KeySize:])
 	if err != nil {
 		return nil, fmt.Errorf("ml-kem-768 private key invalid: %w", err)
 	}
@@ -246,16 +259,19 @@ func newMLKEM768PrivateKeyFromPem(privateKeyPem []byte, block *pem.Block, isCurr
 	if !ok {
 		return nil, errors.New("unable to derive ml-kem-768 public key")
 	}
-	pubPacked := make([]byte, mlkem768.PublicKeySize)
-	pub.Pack(pubPacked)
+	mlkemPubPacked := make([]byte, mlkem768.PublicKeySize)
+	pub.Pack(mlkemPubPacked)
+
+	fingerprint := sha256.Sum256(append(append([]byte{}, x25519Priv.PublicKey().Bytes()...), mlkemPubPacked...))
 
 	return &PrivateKey{
-		timestamp:       time.Now(),
-		fingerprint:     fmt.Sprintf("%x", sha256.Sum256(pubPacked)),
-		privateKeyPem:   privateKeyPem,
-		algorithm:       AlgorithmMLKEM768,
-		mlkemPrivateKey: mlkemKey,
-		isCurrent:       isCurrent,
+		timestamp:        time.Now(),
+		fingerprint:      fmt.Sprintf("%x", fingerprint),
+		privateKeyPem:    privateKeyPem,
+		algorithm:        AlgorithmMLKEM768,
+		x25519PrivateKey: x25519Priv,
+		mlkemPrivateKey:  mlkemKey,
+		isCurrent:        isCurrent,
 	}, nil
 }
 
@@ -267,9 +283,10 @@ func (pk PrivateKey) WritePrivateKey(path string) error {
 
 	var privateKeyPEM []byte
 	if pk.algorithm == AlgorithmMLKEM768 {
-		packed := make([]byte, mlkem768.PrivateKeySize)
-		pk.mlkemPrivateKey.Pack(packed)
-		privateKeyPEM = pem.EncodeToMemory(&pem.Block{Type: mlkemPrivateKeyPEMType, Bytes: packed})
+		mlkemPacked := make([]byte, mlkem768.PrivateKeySize)
+		pk.mlkemPrivateKey.Pack(mlkemPacked)
+		combined := append(append([]byte{}, pk.x25519PrivateKey.Bytes()...), mlkemPacked...)
+		privateKeyPEM = pem.EncodeToMemory(&pem.Block{Type: mlkemPrivateKeyPEMType, Bytes: combined})
 	} else {
 		privateKeyBytes := x509.MarshalPKCS1PrivateKey(pk.privateKey)
 		privateKeyPEM = pem.EncodeToMemory(&pem.Block{
@@ -298,13 +315,14 @@ func (pk PrivateKey) WritePublicKey(path string) error {
 	var publicKeyPEM []byte
 
 	if pk.algorithm == AlgorithmMLKEM768 {
-		pubKey, ok := pk.mlkemPrivateKey.Public().(*mlkem768.PublicKey)
+		mlkemPub, ok := pk.mlkemPrivateKey.Public().(*mlkem768.PublicKey)
 		if !ok {
 			return errors.New("invalid ml-kem-768 private key")
 		}
-		packed := make([]byte, mlkem768.PublicKeySize)
-		pubKey.Pack(packed)
-		publicKeyPEM = pem.EncodeToMemory(&pem.Block{Type: mlkemPublicKeyPEMType, Bytes: packed})
+		mlkemPacked := make([]byte, mlkem768.PublicKeySize)
+		mlkemPub.Pack(mlkemPacked)
+		combined := append(append([]byte{}, pk.x25519PrivateKey.PublicKey().Bytes()...), mlkemPacked...)
+		publicKeyPEM = pem.EncodeToMemory(&pem.Block{Type: mlkemPublicKeyPEMType, Bytes: combined})
 	} else {
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(&pk.privateKey.PublicKey)
 		if err != nil {
@@ -414,31 +432,40 @@ func GeneratePrivateKey() (*PrivateKey, error) {
 	return &pk, nil
 }
 
-// GenerateMLKEM768PrivateKey generates a new ML-KEM-768 (FIPS 203) key pair for the post-quantum hybrid
-// scheme (see hybrid.go). It mirrors GeneratePrivateKey's shape so both algorithms can live side by side
-// in the same PrivateKeys map, e.g. during a key-rotation migration via 'kubectl-paas reencrypt'.
+// GenerateMLKEM768PrivateKey generates a new combined X25519+ML-KEM-768 (FIPS 203) key pair for the
+// post-quantum hybrid scheme (see hybrid.go). It mirrors GeneratePrivateKey's shape so both algorithms
+// can live side by side in the same PrivateKeys map, e.g. during a key-rotation migration via
+// 'kubectl-paas reencrypt'.
 func GenerateMLKEM768PrivateKey() (*PrivateKey, error) {
-	pub, priv, err := mlkem768.GenerateKeyPair(rand.Reader)
+	x25519Priv, err := ecdh.X25519().GenerateKey(rand.Reader)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate x25519 private key: %w", err)
+	}
+
+	mlkemPub, mlkemPriv, err := mlkem768.GenerateKeyPair(rand.Reader)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate ml-kem-768 private key: %w", err)
 	}
 
-	packed := make([]byte, mlkem768.PrivateKeySize)
-	priv.Pack(packed)
+	mlkemPacked := make([]byte, mlkem768.PrivateKeySize)
+	mlkemPriv.Pack(mlkemPacked)
+	combined := append(append([]byte{}, x25519Priv.Bytes()...), mlkemPacked...)
 	var pemBuffer bytes.Buffer
-	if err := pem.Encode(&pemBuffer, &pem.Block{Type: mlkemPrivateKeyPEMType, Bytes: packed}); err != nil {
-		return nil, fmt.Errorf("unable to encode ml-kem-768 private key: %w", err)
+	if err := pem.Encode(&pemBuffer, &pem.Block{Type: mlkemPrivateKeyPEMType, Bytes: combined}); err != nil {
+		return nil, fmt.Errorf("unable to encode x25519+ml-kem-768 private key: %w", err)
 	}
 
-	pubPacked := make([]byte, mlkem768.PublicKeySize)
-	pub.Pack(pubPacked)
-	fingerprint := fmt.Sprintf("%x", sha256.Sum256(pubPacked))
+	mlkemPubPacked := make([]byte, mlkem768.PublicKeySize)
+	mlkemPub.Pack(mlkemPubPacked)
+	fingerprintInput := append(append([]byte{}, x25519Priv.PublicKey().Bytes()...), mlkemPubPacked...)
+	fingerprint := fmt.Sprintf("%x", sha256.Sum256(fingerprintInput))
 
 	return &PrivateKey{
-		fingerprint:     fingerprint,
-		timestamp:       time.Now(),
-		algorithm:       AlgorithmMLKEM768,
-		mlkemPrivateKey: priv,
-		privateKeyPem:   pemBuffer.Bytes(),
+		fingerprint:      fingerprint,
+		timestamp:        time.Now(),
+		algorithm:        AlgorithmMLKEM768,
+		x25519PrivateKey: x25519Priv,
+		mlkemPrivateKey:  mlkemPriv,
+		privateKeyPem:    pemBuffer.Bytes(),
 	}, nil
 }

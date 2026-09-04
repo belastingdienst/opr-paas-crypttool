@@ -93,7 +93,7 @@ func TestMLKEM768RoundTripWithoutPublicKeyFile(t *testing.T) {
 	c, err := NewCryptFromKeys(privateKeys, nil, "context")
 	require.NoError(t, err)
 	assert.Nil(t, c.publicKey)
-	assert.Nil(t, c.mlkemPublicKey)
+	assert.Nil(t, c.hybridPublicKey)
 
 	encrypted, err := c.Encrypt([]byte(original))
 	require.NoError(t, err, "encrypting with public key derived from the ML-KEM-768 private key")
@@ -178,6 +178,39 @@ func TestPrivateKeysCompareMixedAlgorithms(t *testing.T) {
 	d := PrivateKeys{"k": rsaPk}
 	assert.NotPanics(t, func() { a.Compare(d) })
 	assert.False(t, a.Compare(d), "keys of different algorithms should never compare equal")
+}
+
+// TestHybridCiphertextRequiresBothComponents proves the X25519 and ML-KEM-768 halves of the combined
+// scheme both actually contribute to the derived key -- decryption must fail if either private key
+// doesn't match the one the ciphertext was encrypted for, confirming neither component is silently
+// unused (i.e. this is a real combined hybrid, not ML-KEM-768 alone with inert X25519 bytes attached).
+func TestHybridCiphertextRequiresBothComponents(t *testing.T) {
+	const original = "Dit is een test"
+	const context = "context"
+
+	pkA, err := GenerateMLKEM768PrivateKey()
+	require.NoError(t, err)
+	pkB, err := GenerateMLKEM768PrivateKey()
+	require.NoError(t, err)
+
+	pubA, err := hybridPublicKeyFromPrivate(pkA)
+	require.NoError(t, err)
+
+	ciphertext, err := hybridEncrypt(pubA, []byte(original), []byte(context))
+	require.NoError(t, err)
+
+	// Correct key on both halves: decrypts.
+	decrypted, err := hybridDecrypt(pkA.x25519PrivateKey, pkA.mlkemPrivateKey, ciphertext, []byte(context))
+	require.NoError(t, err)
+	assert.Equal(t, original, string(decrypted))
+
+	// Wrong X25519 half (pkB's), correct ML-KEM-768 half (pkA's): must fail.
+	_, err = hybridDecrypt(pkB.x25519PrivateKey, pkA.mlkemPrivateKey, ciphertext, []byte(context))
+	assert.Error(t, err, "a mismatched X25519 private key must not decrypt -- the ECDH half must actually matter")
+
+	// Correct X25519 half (pkA's), wrong ML-KEM-768 half (pkB's): must fail.
+	_, err = hybridDecrypt(pkA.x25519PrivateKey, pkB.mlkemPrivateKey, ciphertext, []byte(context))
+	assert.Error(t, err, "a mismatched ML-KEM-768 private key must not decrypt -- the KEM half must actually matter")
 }
 
 func mustBase64Decode(t *testing.T, s string) []byte {
